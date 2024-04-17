@@ -1,112 +1,73 @@
-import { default as stravaImport, Strava } from 'npm:strava-v3@2.2.0'
+import { default as stravaImport, Strava } from "npm:strava-v3@2.2.0";
 import "https://deno.land/x/dotenv@v3.2.2/load.ts";
-import { serve } from "https://deno.land/std@0.92.0/http/server.ts";
-import { Config } from "./types.ts";
+import { Context, Hono } from "https://deno.land/x/hono@v3.3.4/mod.ts";
+import { createConfig, getAccessUrl } from "./utils.ts";
 
+const AUTH_TOKEN = Deno.env.get("AUTH_TOKEN");
+const CLIENT_ID = Deno.env.get("CLIENT_ID");
+const REDIRECT_URI = Deno.env.get("REDIRECT_URI");
+const CLIENT_SECRET = Deno.env.get("CLIENT_SECRET");
 
-const AUTH_TOKEN = Deno.env.get("AUTH_TOKEN")
-const CLIENT_ID = Deno.env.get("CLIENT_ID")
-const REDIRECT_URI = Deno.env.get("REDIRECT_URI")
-const CLIENT_SECRET = Deno.env.get("CLIENT_SECRET")
+const strava = stravaImport as unknown as Strava;
 
-const strava = stravaImport as unknown as Strava
+const config = createConfig(AUTH_TOKEN, CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
 
-export function createConfig() {
-  if (!AUTH_TOKEN) {
-    throw new Error("No AUTH_TOKEN provided")
-  } if (!CLIENT_ID) {
-    throw new Error("No CLIENT_ID provided")
-  } if (!CLIENT_SECRET) {
-    throw new Error("No CLIENT_SECRET provided")
-  } if (!REDIRECT_URI) {
-    throw new Error("No REDIRECT_URI provided")
-  }
-  
-  return {
-    "access_token"  : AUTH_TOKEN,
-    "client_id"     : CLIENT_ID,
-    "client_secret" : CLIENT_SECRET,
-    "redirect_uri"  : REDIRECT_URI,
-  };
-}
+strava.config(config);
 
-export async function getAccessUrl(config: Config):Promise<string> {
-  try{
-    const accessURL = await strava.oauth.getRequestAccessURL(config)
-    console.log(accessURL)
-    return accessURL
-    
+const app = new Hono();
 
-    // const accessUrlResponse = await fetch(accessURL, {
-    //   method:"GET",
-    //   headers:new Headers(config),
-    //   redirect: 'follow'
-    // })
-    // console.log(accessUrlResponse.url)
-    
-    // console.log(newURL.searchParams.get("code"))
+app.get(
+  "/auth/login",
+  async (c: Context) => {
+    const accessUrl = await getAccessUrl(strava, config);
+    return c.redirect(accessUrl);
+  },
+);
 
-    // const code = "f3eb8ededc68db4da09e5b0cd782549576929876"
-
-    // const accessToken = await strava.oauth.getToken(code)
-    // console.log(accessToken)
-    // console.log(await strava.athlete.get({"access_token":accessToken}))
-  
-  }catch(error){
-    throw new Error(error)
-  }
-}
-
-// Learn more at https://deno.land/manual/examples/module_metadata#concepts
-if (import.meta.main) {
-
-  const config = createConfig()
-  strava.config(config)
-
-  const server = serve({ port: 8000 });  
-  let accessToken
-
-  for await (const req of server) {
-
-    const reqUrl = new URL(REDIRECT_URI + req.url)
-    const reqSearchParams = reqUrl.searchParams
-    if (reqSearchParams.has("code")){
-      console.log("EXISTS")
-      accessToken = reqSearchParams.get("code")
+app.get(
+  "/auth/access-code",
+  async (c: Context) => {
+    const reqUrl = new URL(c.req.url);
+    const reqSearchParams = reqUrl.searchParams;
+    if (!reqSearchParams.has("code")) {
+      return c.redirect("/auth/login");
     }
+    const accessCode = reqSearchParams.get("code");
+    if (!accessCode) throw new Error("Invalid access code");
+    Deno.env.set("ACCESS_CODE", accessCode);
 
-    if (!accessToken) {
-      const accessUrl = await getAccessUrl(config)
-      req.respond({
-        status: 302,
-        headers: new Headers({
-          "Location": accessUrl,
-        }),
-      });
+    const tokenExchange = await fetch("https://www.strava.com/oauth/token", {
+      method: "POST",
+      body: new URLSearchParams({
+        ...config,
+        "code": accessCode,
+      }),
+    });
+
+    if (tokenExchange.ok) {
+      const tokenData = await tokenExchange.json();
+      console.log("Token Data:", tokenData);
+
+      const tokenExpiresAt = tokenData.get("expires_at");
+      const tokenExpiresIn = tokenData.get("expires_in");
+      const refreshToken = tokenData.get("refresh_token");
+      const accessToken = tokenData.get("access_token");
+
+      return c.text(JSON.stringify(tokenData));
     } else {
-      req.respond({
-        status:200,
-        body: accessToken
-      })
+      console.error(
+        "Failed to exchange authorization code for token:",
+        await tokenExchange.text(),
+      );
     }
+  },
+);
 
-  }
-  //   try {
-  //     const url = new URL(`http://localhost:8000${req.url}`);
-  //     await login()
-  //     const authorizationCode = url.searchParams.get("code");
-  
-  //     if (authorizationCode) {
-  //       console.log("Authorization code:", authorizationCode);
-  //       // Process the authorization code
-  //       req.respond({ body: "Authorization code received" });
-  //     } else {
-  //       req.respond({ status: 400, body: "Authorization code not found" });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //     req.respond({ status: 500, body: "Internal Server Error" });
-  //   }
-  // }
+app.get(
+  "/",
+  (c: Context) => {
+    return c.text("Hello Deno!");
+  },
+);
 
-}
+Deno.serve(app.fetch);
