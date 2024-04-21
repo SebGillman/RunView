@@ -2,12 +2,12 @@ import { Strava } from "npm:strava-v3@2.2.0";
 import { Config } from "./types.ts";
 
 export function createConfig(
-  AUTH_TOKEN: string | undefined,
+  ACCESS_TOKEN: string | undefined,
   CLIENT_ID: string | undefined,
   CLIENT_SECRET: string | undefined,
   REDIRECT_URI: string | undefined,
 ) {
-  if (!AUTH_TOKEN) {
+  if (!ACCESS_TOKEN) {
     throw new Error("No AUTH_TOKEN provided");
   }
   if (!CLIENT_ID) {
@@ -20,11 +20,11 @@ export function createConfig(
     throw new Error("No REDIRECT_URI provided");
   }
   return {
-    "access_token": AUTH_TOKEN,
+    "access_token": ACCESS_TOKEN,
     "client_id": CLIENT_ID,
     "client_secret": CLIENT_SECRET,
     "redirect_uri": REDIRECT_URI,
-    "approval_prompt": "force",
+    "approval_prompt": "auto",
     "grant_type": "authorization_code",
   };
 }
@@ -34,7 +34,12 @@ export async function getAccessUrl(
   config: Config,
 ): Promise<string> {
   try {
-    const accessURL = await strava.oauth.getRequestAccessURL(config);
+    const accessURL = await strava.oauth.getRequestAccessURL({
+      "client_id": config.client_id,
+      "redirect_uri": config.redirect_uri,
+      "response_type": "code",
+      "scope": "activity:read_all,profile:read_all",
+    });
     return accessURL;
   } catch (error) {
     throw new Error(error);
