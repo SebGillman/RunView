@@ -1,5 +1,6 @@
 import { Context } from "https://deno.land/x/hono@v3.3.4/mod.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
+import { Activity } from "./types.ts";
 
 export function createConfig(
   ACCESS_TOKEN: string | undefined,
@@ -116,9 +117,9 @@ export function getEnvVar(env: DB, column: string) {
   return env.query(`SELECT ${column} FROM env;`)[0][0] as string;
 }
 
-export async function getLoggedInAthlete(env: DB) {
+export async function getLoggedInAthlete(env: DB): Promise<Activity[]> {
   const ACCESS_TOKEN = getEnvVar(env, "ACCESS_TOKEN");
-  return await fetch(
+  const response = await fetch(
     "https://www.strava.com/api/v3/athlete",
     {
       method: "GET",
@@ -128,11 +129,12 @@ export async function getLoggedInAthlete(env: DB) {
       }),
     },
   );
+  return await response.json();
 }
 
 export async function getLoggedInAthleteActivities(env: DB) {
   const ACCESS_TOKEN = getEnvVar(env, "ACCESS_TOKEN");
-  return await fetch(
+  const response = await fetch(
     "https://www.strava.com/api/v3/athlete/activities",
     {
       method: "GET",
@@ -142,4 +144,5 @@ export async function getLoggedInAthleteActivities(env: DB) {
       }),
     },
   );
+  return await response.json();
 }

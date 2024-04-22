@@ -1,11 +1,12 @@
 import { Context, Hono } from "https://deno.land/x/hono@v3.3.4/mod.ts";
 import {
   getAccessUrl,
-  getLoggedInAthlete,
+  // getLoggedInAthlete,
   getLoggedInAthleteActivities,
   getTokenExchange,
 } from "./utils.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
+import { Activity } from "./types.ts";
 
 const env = new DB("./env.db");
 
@@ -26,14 +27,33 @@ app.get(
     try {
       await getTokenExchange(c, env);
 
-      const me = await getLoggedInAthlete(env);
+      // const me = await getLoggedInAthlete(env);
+      return c.redirect("/activities");
+    } catch (error) {
+      return c.text(error);
+    }
+  },
+);
 
-      const myActivities = await getLoggedInAthleteActivities(env);
+app.get(
+  "/activities",
+  async (c: Context) => {
+    try {
+      const myActivities: Activity[] = await getLoggedInAthleteActivities(env);
 
-      return c.text(
-        JSON.stringify(await me.json()) + "\n\n" +
-          JSON.stringify(await myActivities.json()),
-      );
+      let activities = "";
+
+      myActivities.forEach((activity) => {
+        activities = activities + `
+        
+        Athlete ID: ${activity.athlete.id}
+        Activity Name: ${activity.name}
+        Date: ${activity.start_date}
+        Distance: ${activity.distance}
+        `;
+      });
+
+      return c.text(activities);
     } catch (error) {
       return c.text(error);
     }
