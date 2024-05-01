@@ -1,6 +1,4 @@
 .env
 .gitattributes
 .vscode
-env.db
 *.db
-env2.db

@@ -11,7 +11,7 @@ import {
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
 import { Activity, BarChartData } from "./types.ts";
 
-const env = new DB("./env.db");
+const env = new DB("./auth.db");
 
 const app = new Hono();
 
