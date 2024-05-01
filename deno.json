@@ -2,5 +2,10 @@
   "tasks": {
     "run": "deno run --watch --allow-read --allow-env --allow-net --allow-write main.ts",
     "test": "deno run --watch --allow-read --allow-env --allow-net --allow-write main_test.ts"
+  },
+  "compilerOptions": {
+    "jsx": "react",
+    "jsxFactory": "React.createElement",
+    "jsxFragmentFactory": "React.Fragment"
   }
 }

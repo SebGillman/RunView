@@ -1,12 +1,12 @@
-import { Context } from "https://deno.land/x/hono@v3.3.4/mod.ts";
+import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
-import { Activity } from "./types.ts";
+import { Activity, BarChartData } from "./types.ts";
 
 export function createConfig(
   ACCESS_TOKEN: string | undefined,
   CLIENT_ID: string | undefined,
   CLIENT_SECRET: string | undefined,
-  REDIRECT_URI: string | undefined,
+  REDIRECT_URI: string | undefined
 ) {
   if (!ACCESS_TOKEN) {
     throw new Error("No AUTH_TOKEN provided");
@@ -21,27 +21,25 @@ export function createConfig(
     throw new Error("No REDIRECT_URI provided");
   }
   return {
-    "access_token": ACCESS_TOKEN,
-    "client_id": CLIENT_ID,
-    "client_secret": CLIENT_SECRET,
-    "redirect_uri": REDIRECT_URI,
-    "approval_prompt": "auto",
-    "grant_type": "authorization_code",
+    access_token: ACCESS_TOKEN,
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    redirect_uri: REDIRECT_URI,
+    approval_prompt: "auto",
+    grant_type: "authorization_code",
   };
 }
 
-export async function getAccessUrl(
-  env: DB,
-): Promise<string> {
+export async function getAccessUrl(env: DB): Promise<string> {
   try {
     const CLIENT_ID = await getEnvVar(env, "CLIENT_ID");
     const REDIRECT_URI = await getEnvVar(env, "REDIRECT_URI");
 
     const queryParams = {
-      "client_id": CLIENT_ID,
-      "redirect_uri": REDIRECT_URI,
-      "response_type": "code",
-      "scope": "activity:read_all,profile:read_all",
+      client_id: CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      response_type: "code",
+      scope: "activity:read_all,profile:read_all",
     };
 
     const url = new URL("https://www.strava.com/oauth/authorize");
@@ -58,10 +56,7 @@ export async function getAccessUrl(
   }
 }
 
-export async function getTokenExchange(
-  c: Context,
-  env: DB,
-) {
+export async function getTokenExchange(c: Context, env: DB) {
   const CLIENT_ID = getEnvVar(env, "CLIENT_ID");
   const CLIENT_SECRET = getEnvVar(env, "CLIENT_SECRET");
   let REFRESH_TOKEN = getEnvVar(env, "REFRESH_TOKEN");
@@ -85,12 +80,12 @@ export async function getTokenExchange(
     {
       method: "POST",
       body: new URLSearchParams({
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "code": accessCode,
-        "grant_type": "authorization_code", //todo
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code: accessCode,
+        grant_type: "authorization_code", //todo
       }),
-    },
+    }
   );
   // console.log(tokenExchange);
   if (tokenExchange.ok) {
@@ -119,16 +114,13 @@ export function getEnvVar(env: DB, column: string) {
 
 export async function getLoggedInAthlete(env: DB): Promise<Activity[]> {
   const ACCESS_TOKEN = getEnvVar(env, "ACCESS_TOKEN");
-  const response = await fetch(
-    "https://www.strava.com/api/v3/athlete",
-    {
-      method: "GET",
-      headers: new Headers({
-        "Authorization": `Bearer ${ACCESS_TOKEN}`,
-        "Accept": "application/json",
-      }),
-    },
-  );
+  const response = await fetch("https://www.strava.com/api/v3/athlete", {
+    method: "GET",
+    headers: new Headers({
+      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      Accept: "application/json",
+    }),
+  });
   return await response.json();
 }
 
@@ -139,10 +131,43 @@ export async function getLoggedInAthleteActivities(env: DB) {
     {
       method: "GET",
       headers: new Headers({
-        "Authorization": `Bearer ${ACCESS_TOKEN}`,
-        "Accept": "application/json",
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        Accept: "application/json",
       }),
-    },
+    }
   );
   return await response.json();
+}
+
+export function barChart(
+  body: string,
+  chartName: string,
+  data: BarChartData
+): string {
+  const chartScript = `
+  <script>
+    const ctx = document.getElementById("${chartName}")
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [${data.bar_labels.map((element) => `"${element}"`)}],
+        datasets: [{
+          label: "${data.ylabel}",
+          data: [${data.bar_values}],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    })
+  </script>`;
+  body = body + "\n" + chartScript;
+
+  return body;
 }
