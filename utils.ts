@@ -127,7 +127,7 @@ export async function getLoggedInAthlete(env: DB): Promise<Activity[]> {
 export async function getLoggedInAthleteActivities(env: DB) {
   const ACCESS_TOKEN = getEnvVar(env, "ACCESS_TOKEN");
   const response = await fetch(
-    "https://www.strava.com/api/v3/athlete/activities",
+    "https://www.strava.com/api/v3/athlete/activities?per_page=200",
     {
       method: "GET",
       headers: new Headers({
@@ -170,4 +170,49 @@ export function barChart(
   body = body + "\n" + chartScript;
 
   return body;
+}
+function getWeek(originalDate: Date) {
+  const date = new Date(originalDate.getTime());
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+  const week1 = new Date(date.getFullYear(), 0, 4);
+  return (
+    1 +
+    Math.round(
+      ((date.getTime() - week1.getTime()) / 86400000 -
+        3 +
+        ((week1.getDay() + 6) % 7)) /
+        7
+    )
+  );
+}
+
+function groupActivitiesByWeek(data: Activity[]): {
+  [key: string]: Activity[];
+} {
+  const grouped: { [key: string]: Activity[] } = {};
+  data.forEach((item) => {
+    const date = new Date(item.start_date);
+    const week = `${date.getFullYear()}-${getWeek(date)}`;
+    if (!(week in grouped)) {
+      grouped[week] = [];
+    }
+    grouped[week].push(item);
+  });
+  return grouped;
+}
+
+export function getWeeklyDistance(data: Activity[]): {
+  [key: string]: number;
+} {
+  const grouped: { [key: string]: number } = {};
+  data.forEach((item) => {
+    const date = new Date(item.start_date);
+    const week = `${date.getFullYear()}-${getWeek(date)}`;
+    if (!(week in grouped)) {
+      grouped[week] = 0;
+    }
+    grouped[week] = grouped[week] + item.distance;
+  });
+  return grouped;
 }

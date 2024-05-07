@@ -7,6 +7,7 @@ import {
   // getLoggedInAthlete,
   getLoggedInAthleteActivities,
   getTokenExchange,
+  getWeeklyDistance,
 } from "./utils.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
 import { Activity, BarChartData } from "./types.ts";
@@ -50,7 +51,31 @@ app.get("/activities", async (c: Context) => {
         `;
     });
 
-    return c.text(activities);
+    const weeklyActivities = getWeeklyDistance(myActivities);
+
+    const data: BarChartData = {
+      title: "Distance Per Week",
+      xlabel: "Week",
+      ylabel: "Distance",
+      bar_labels: Object.keys(weeklyActivities).toReversed(),
+      bar_values: Object.values(weeklyActivities).toReversed(),
+    };
+
+    const head = `<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>`;
+    let body = `<div style="width:50%">
+  <canvas id="myChart"></canvas>
+</div>`;
+
+    body = barChart(body, "myChart", data);
+
+    return c.html(`
+<head>
+${head}
+</head>
+<body>
+${body}
+</body>
+`);
   } catch (error) {
     return c.text(error);
   }
