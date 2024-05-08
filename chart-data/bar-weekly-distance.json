@@ -1,0 +1,6 @@
+{
+  "title": "Distance Per Week",
+  "xlabel": "Week",
+  "ylabel": "Distance",
+  "data": "getWeeklyDistance"
+}

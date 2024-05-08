@@ -2,15 +2,12 @@
 
 import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import {
-  barChart,
+  addCharts,
   getAccessUrl,
-  // getLoggedInAthlete,
-  getLoggedInAthleteActivities,
+  getHTMLDoc,
   getTokenExchange,
-  getWeeklyDistance,
 } from "./utils.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
-import { Activity, BarChartData } from "./types.ts";
 
 const env = new DB("./auth.db");
 
@@ -33,33 +30,28 @@ app.get("/auth/access-code", async (c: Context) => {
   }
 });
 
+// app.get("/landing-page", async (c: Context) => {
+//   try {
+//     let body = `<div id="myChart-parent" style="width:45%; height:50%;">
+//   <canvas id="myChart" style="margin:20px"></canvas>
+// </div>`;
+//   } catch (error) {
+//     return c.text(error);
+//   }
+// });
+
 app.get("/activities", async (c: Context) => {
   try {
-    const myActivities: Activity[] = await getLoggedInAthleteActivities(env);
+    let { head, body } = await getHTMLDoc();
 
-    const weeklyActivities = getWeeklyDistance(myActivities);
-
-    const data: BarChartData = {
-      title: "Distance Per Week",
-      xlabel: "Week",
-      ylabel: "Distance",
-      bar_labels: Object.keys(weeklyActivities).toReversed(),
-      bar_values: Object.values(weeklyActivities).toReversed(),
-    };
-
-    const head = `<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>`;
-    let body = `<div id="myChart-parent" style="width:45%; height:50%;">
-  <canvas id="myChart" style="margin:20px"></canvas>
-</div>`;
-
-    body = barChart(body, "myChart", data);
+    body = await addCharts(body, env);
 
     return c.html(`
 <head>
-${head}
+${head.innerHTML}
 </head>
 <body>
-${body}
+${body.innerHTML}
 </body>
 `);
   } catch (error) {

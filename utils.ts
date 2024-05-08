@@ -1,6 +1,12 @@
 import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
-import { Activity, BarChartData } from "./types.ts";
+import { Activity, BarChartData, chartJsonData } from "./types.ts";
+import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.45/src/dom/dom-parser.ts";
+import {
+  Element,
+  HTMLDocument,
+} from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
+import { existsSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 
 export function createConfig(
   ACCESS_TOKEN: string | undefined,
@@ -64,7 +70,6 @@ export async function getTokenExchange(c: Context, env: DB) {
 
   const reqUrl = new URL(c.req.url);
   const reqSearchParams = reqUrl.searchParams;
-  console.log(reqSearchParams);
   if (!reqSearchParams.has("code")) {
     return c.redirect("/auth/login");
   }
@@ -140,12 +145,17 @@ export async function getLoggedInAthleteActivities(env: DB) {
 }
 
 export function barChart(
-  body: string,
+  body: Element,
   chartName: string,
   data: BarChartData
-): string {
-  const chartScript = `
-  <script>
+): Element {
+  const parser = new DOMParser();
+  const dom = parser.parseFromString(body.innerHTML, "text/html");
+
+  if (dom === null) throw new Error("Body does not exist!");
+
+  const chartScript = dom.createElement("script");
+  chartScript.textContent = `
     var element = document.getElementById("${chartName}");
     var chart = echarts.init(element, 'dark',{
       useCoarsePointer: true,
@@ -206,34 +216,12 @@ export function barChart(
       }]
     };
     chart.setOption(options);
-    window.addEventListener('resize', chart.resize);
-  </script>`;
+    window.addEventListener('resize', chart.resize);`;
+  const parent = body.getElementById(chartName);
 
-  // const chartScript = `
-  // <script>
-  //   const ctx = document.getElementById("${chartName}")
+  if (!parent) throw new Error("This chart does not exist!");
 
-  //   new Chart(ctx, {
-  //     type: 'bar',
-  //     data: {
-  //       labels: [${data.bar_labels.map((element) => `"${element}"`)}],
-  //       datasets: [{
-  //         label: "${data.ylabel}",
-  //         data: [${data.bar_values}],
-  //         borderWidth: 1
-  //       }]
-  //     },
-  //     options: {
-  //       scales: {
-  //         y: {
-  //           beginAtZero: true
-  //         }
-  //       }
-  //     }
-  //   })
-  // </script>`;
-  body = body + "\n" + chartScript;
-
+  parent.appendChild(chartScript);
   return body;
 }
 
@@ -259,9 +247,8 @@ function getWeekStart(originalDate: Date): string {
 //   return grouped;
 // }
 
-export function getWeeklyDistance(data: Activity[]): {
-  [key: string]: number;
-} {
+export async function getWeeklyDistance(env: DB) {
+  const data: Activity[] = await getLoggedInAthleteActivities(env);
   const grouped: { [key: string]: number } = {};
   data.forEach((item) => {
     const date = new Date(item.start_date);
@@ -272,4 +259,58 @@ export function getWeeklyDistance(data: Activity[]): {
     grouped[week] = grouped[week] + item.distance / 1000;
   });
   return grouped;
+}
+
+export async function getHTMLDoc(): Promise<HTMLDocument> {
+  const parser = new DOMParser();
+  const htmlContent = await Deno.readTextFile("./index.html");
+  const doc = parser.parseFromString(htmlContent, "text/html");
+
+  if (doc === null) throw new Error("HTML Template not found.");
+
+  return doc;
+}
+
+export async function addCharts(body: Element, env: DB) {
+  let bodyWithCharts = body;
+
+  for (const node of body.querySelectorAll("canvas")) {
+    if (!(node instanceof Element)) continue;
+
+    const element = node as Element;
+    const elementId = element.getAttribute("id");
+
+    if (!(elementId && elementId.startsWith("bar"))) continue;
+
+    const dataPath = `./chart-data/${elementId}.json`;
+
+    if (!existsSync(dataPath))
+      throw new Error("Data JSON does not exist for this chart!");
+
+    const jsonData: chartJsonData = (
+      await import(dataPath, {
+        with: { type: "json" },
+      })
+    ).default;
+
+    let data: {
+      [key: string]: number;
+    };
+
+    if (jsonData.data == "getWeeklyDistance") {
+      data = await getWeeklyDistance(env);
+    } else {
+      continue;
+    }
+
+    const outputData: BarChartData = {
+      title: jsonData.title,
+      xlabel: jsonData.xlabel,
+      ylabel: jsonData.ylabel,
+      bar_labels: Object.keys(data).toReversed(),
+      bar_values: Object.values(data).toReversed(),
+    };
+    bodyWithCharts = barChart(bodyWithCharts, elementId, outputData);
+  }
+  return bodyWithCharts;
 }

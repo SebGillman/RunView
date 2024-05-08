@@ -59,6 +59,13 @@ export interface Activity {
   has_kudoed: boolean;
 }
 
+export interface chartJsonData {
+  title: string;
+  xlabel: string;
+  ylabel: string;
+  data: string;
+}
+
 export interface BarChartData {
   title: string;
   xlabel: string;
