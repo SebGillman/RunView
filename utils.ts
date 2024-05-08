@@ -146,61 +146,118 @@ export function barChart(
 ): string {
   const chartScript = `
   <script>
-    const ctx = document.getElementById("${chartName}")
+    var element = document.getElementById("${chartName}");
+    var chart = echarts.init(element, 'dark',{
+      useCoarsePointer: true,
+      width:document.getElementById("${chartName}-parent").offsetWidth,
+      height:document.getElementById("${chartName}-parent").offsetHeight
+    });
 
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: [${data.bar_labels.map((element) => `"${element}"`)}],
-        datasets: [{
-          label: "${data.ylabel}",
-          data: [${data.bar_values}],
-          borderWidth: 1
-        }]
+    var options = {
+      tooltip: {
+          trigger: 'axis',
+          confine: true
       },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true
+      grid: {
+          left: 50,
+          right: 25,
+          top: 20,
+          bottom: 60,
+      },
+      xAxis: {
+          data: [${data.bar_labels.map((date) => JSON.stringify(date))}],
+          axisLabel: {
+              // interval: 1,
+              rotate: 40
           }
-        }
-      }
-    })
+      },
+      yAxis: {
+          splitNumber: 3,
+          axisLabel: {
+              formatter: '{value} km'
+          },
+      },
+      series: [{
+          type: 'bar',
+          data: [${data.bar_values.toString()}],
+          symbolSize: 10,
+          markLine: {
+              data: [{
+                  type: 'median',
+                  name: 'Median',
+                  label: {
+                      formatter: function (params) {
+                          return Math.round(params.value)
+                      .toString();
+                      },
+                      show: true,
+                  }
+              }],
+              lineStyle: {
+                  color: 'white'
+              }
+          },
+          itemStyle: {
+              color: 'rgb(242, 102, 171)'
+          },
+          tooltip: {
+              valueFormatter: value => value + ' kilometers'
+          },
+      }]
+    };
+    chart.setOption(options);
+    window.addEventListener('resize', chart.resize);
   </script>`;
+
+  // const chartScript = `
+  // <script>
+  //   const ctx = document.getElementById("${chartName}")
+
+  //   new Chart(ctx, {
+  //     type: 'bar',
+  //     data: {
+  //       labels: [${data.bar_labels.map((element) => `"${element}"`)}],
+  //       datasets: [{
+  //         label: "${data.ylabel}",
+  //         data: [${data.bar_values}],
+  //         borderWidth: 1
+  //       }]
+  //     },
+  //     options: {
+  //       scales: {
+  //         y: {
+  //           beginAtZero: true
+  //         }
+  //       }
+  //     }
+  //   })
+  // </script>`;
   body = body + "\n" + chartScript;
 
   return body;
 }
-function getWeek(originalDate: Date) {
+
+function getWeekStart(originalDate: Date): string {
   const date = new Date(originalDate.getTime());
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
-  const week1 = new Date(date.getFullYear(), 0, 4);
-  return (
-    1 +
-    Math.round(
-      ((date.getTime() - week1.getTime()) / 86400000 -
-        3 +
-        ((week1.getDay() + 6) % 7)) /
-        7
-    )
-  );
+  const day = date.getDay();
+  date.setDate(date.getDate() - day + (day === 0 ? -6 : 1));
+  return `${date.getMonth()}-${date.getDate()}`;
 }
 
-function groupActivitiesByWeek(data: Activity[]): {
-  [key: string]: Activity[];
-} {
-  const grouped: { [key: string]: Activity[] } = {};
-  data.forEach((item) => {
-    const date = new Date(item.start_date);
-    const week = `${date.getFullYear()}-${getWeek(date)}`;
-    if (!(week in grouped)) {
-      grouped[week] = [];
-    }
-    grouped[week].push(item);
-  });
-  return grouped;
-}
+// function _groupActivitiesByWeek(data: Activity[]): {
+//   [key: string]: Activity[];
+// } {
+//   const grouped: { [key: string]: Activity[] } = {};
+//   data.forEach((item) => {
+//     const date = new Date(item.start_date);
+//     const week = `${date.getFullYear()}-${getWeek(date)}`;
+//     if (!(week in grouped)) {
+//       grouped[week] = [];
+//     }
+//     grouped[week].push(item);
+//   });
+//   return grouped;
+// }
 
 export function getWeeklyDistance(data: Activity[]): {
   [key: string]: number;
@@ -208,11 +265,11 @@ export function getWeeklyDistance(data: Activity[]): {
   const grouped: { [key: string]: number } = {};
   data.forEach((item) => {
     const date = new Date(item.start_date);
-    const week = `${date.getFullYear()}-${getWeek(date)}`;
+    const week = `${date.getFullYear()}-${getWeekStart(date)}`;
     if (!(week in grouped)) {
       grouped[week] = 0;
     }
-    grouped[week] = grouped[week] + item.distance;
+    grouped[week] = grouped[week] + item.distance / 1000;
   });
   return grouped;
 }

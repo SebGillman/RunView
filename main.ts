@@ -37,20 +37,6 @@ app.get("/activities", async (c: Context) => {
   try {
     const myActivities: Activity[] = await getLoggedInAthleteActivities(env);
 
-    let activities = "";
-
-    myActivities.forEach((activity) => {
-      activities =
-        activities +
-        `
-        
-        Athlete ID: ${activity.athlete.id}
-        Activity Name: ${activity.name}
-        Date: ${activity.start_date}
-        Distance: ${activity.distance}
-        `;
-    });
-
     const weeklyActivities = getWeeklyDistance(myActivities);
 
     const data: BarChartData = {
@@ -61,9 +47,9 @@ app.get("/activities", async (c: Context) => {
       bar_values: Object.values(weeklyActivities).toReversed(),
     };
 
-    const head = `<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>`;
-    let body = `<div style="width:50%">
-  <canvas id="myChart"></canvas>
+    const head = `<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>`;
+    let body = `<div id="myChart-parent" style="width:45%; height:50%;">
+  <canvas id="myChart" style="margin:20px"></canvas>
 </div>`;
 
     body = barChart(body, "myChart", data);
@@ -83,32 +69,6 @@ ${body}
 
 app.get("/", (c: Context) => {
   return c.redirect("/auth/login");
-});
-
-app.get("/haha", (c: Context) => {
-  const head = `<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>`;
-  let body = `<div style="width:50%">
-  <canvas id="myChart"></canvas>
-</div>`;
-
-  const data: BarChartData = {
-    title: "Title",
-    xlabel: "x",
-    ylabel: "y",
-    bar_labels: ["a", "b", "c", "d"],
-    bar_values: [1, 2, 3, 4],
-  };
-
-  body = barChart(body, "myChart", data);
-
-  return c.html(`
-  <head>
-  ${head}
-  </head>
-  <body>
-  ${body}
-  </body>
-  `);
 });
 
 Deno.serve(app.fetch);
