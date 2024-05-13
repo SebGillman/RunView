@@ -1,12 +1,11 @@
 import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
-import { Activity, BarChartData, chartJsonData } from "./types.ts";
+import { Activity, chartData } from "./types.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.45/src/dom/dom-parser.ts";
 import {
   Element,
   HTMLDocument,
 } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
-import { existsSync } from "https://deno.land/std@0.224.0/fs/mod.ts";
 
 export function createConfig(
   ACCESS_TOKEN: string | undefined,
@@ -147,7 +146,7 @@ export async function getLoggedInAthleteActivities(env: DB) {
 export function barChart(
   body: Element,
   chartName: string,
-  data: BarChartData
+  data: chartData
 ): Element {
   const parser = new DOMParser();
   const dom = parser.parseFromString(body.innerHTML, "text/html");
@@ -175,7 +174,7 @@ export function barChart(
           bottom: 60,
       },
       xAxis: {
-          data: [${data.bar_labels.map((date) => JSON.stringify(date))}],
+          data: [${data.data_labels.map((date) => JSON.stringify(date))}],
           axisLabel: {
               // interval: 1,
               rotate: 40
@@ -189,7 +188,7 @@ export function barChart(
       },
       series: [{
           type: 'bar',
-          data: [${data.bar_values.toString()}],
+          data: [${data.data_values.toString()}],
           symbolSize: 10,
           markLine: {
               data: [{
@@ -273,6 +272,23 @@ export async function getHTMLDoc(): Promise<HTMLDocument> {
 
 export async function addCharts(body: Element, env: DB) {
   let bodyWithCharts = body;
+  const client = new DB("./db/charts.db");
+
+  const funcs: {
+    [key: string]: (env: DB) => Promise<{ [key: string]: number }>;
+  } = {
+    getWeeklyDistance: getWeeklyDistance,
+  };
+
+  const chartTypes: {
+    [key: string]: (
+      body: Element,
+      chartName: string,
+      data: chartData
+    ) => Element;
+  } = {
+    bar: barChart,
+  };
 
   for (const node of body.querySelectorAll("canvas")) {
     if (!(node instanceof Element)) continue;
@@ -280,37 +296,38 @@ export async function addCharts(body: Element, env: DB) {
     const element = node as Element;
     const elementId = element.getAttribute("id");
 
-    if (!(elementId && elementId.startsWith("bar"))) continue;
+    const query = client.query(
+      `SELECT * FROM charts WHERE id = '${elementId}'`
+    );
 
-    const dataPath = `./chart-data/${elementId}.json`;
+    if (!query.length) throw new Error("Data does not exist for this chart!");
 
-    if (!existsSync(dataPath))
-      throw new Error("Data JSON does not exist for this chart!");
+    const [
+      _chartId,
+      chartType,
+      chartTitle,
+      chartXlabel,
+      chartYlabel,
+      chartFunc,
+    ] = query[0] as [string, string, string, string, string, string];
 
-    const jsonData: chartJsonData = (
-      await import(dataPath, {
-        with: { type: "json" },
-      })
-    ).default;
+    if (!(elementId && chartType === "bar")) continue;
 
-    let data: {
-      [key: string]: number;
+    const data = await funcs[chartFunc](env);
+
+    const outputData: chartData = {
+      title: chartTitle,
+      xlabel: chartXlabel,
+      ylabel: chartYlabel,
+      data_labels: Object.keys(data).toReversed(),
+      data_values: Object.values(data).toReversed(),
     };
 
-    if (jsonData.data == "getWeeklyDistance") {
-      data = await getWeeklyDistance(env);
-    } else {
-      continue;
-    }
-
-    const outputData: BarChartData = {
-      title: jsonData.title,
-      xlabel: jsonData.xlabel,
-      ylabel: jsonData.ylabel,
-      bar_labels: Object.keys(data).toReversed(),
-      bar_values: Object.values(data).toReversed(),
-    };
-    bodyWithCharts = barChart(bodyWithCharts, elementId, outputData);
+    bodyWithCharts = chartTypes[chartType](
+      bodyWithCharts,
+      elementId,
+      outputData
+    );
   }
   return bodyWithCharts;
 }

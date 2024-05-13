@@ -66,10 +66,10 @@ export interface chartJsonData {
   data: string;
 }
 
-export interface BarChartData {
+export interface chartData {
   title: string;
   xlabel: string;
   ylabel: string;
-  bar_labels: string[];
-  bar_values: number[];
+  data_labels: string[];
+  data_values: number[];
 }
