@@ -6,6 +6,7 @@ import {
   Element,
   HTMLDocument,
 } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
+import { sha1, sha256 } from "https://deno.land/x/hono@v4.1.4/utils/crypto.ts";
 
 export function createConfig(
   ACCESS_TOKEN: string | undefined,
@@ -151,12 +152,14 @@ export function barChart(
   const parser = new DOMParser();
   const dom = parser.parseFromString(body.innerHTML, "text/html");
 
+  const nameWithoutDashes = chartName.replaceAll("-", "_");
+
   if (dom === null) throw new Error("Body does not exist!");
 
   const chartScript = dom.createElement("script");
   chartScript.textContent = `
     var element = document.getElementById("${chartName}");
-    var chart = echarts.init(element, 'dark',{
+    var chart_${nameWithoutDashes} = echarts.init(element, 'dark',{
       useCoarsePointer: true,
       width:document.getElementById("${chartName}-parent").offsetWidth,
       height:document.getElementById("${chartName}-parent").offsetHeight
@@ -214,9 +217,15 @@ export function barChart(
           },
       }]
     };
-    chart.setOption(options);
-    window.addEventListener('resize', chart.resize);`;
-  const parent = body.getElementById(chartName);
+    chart_${nameWithoutDashes}.setOption(options);
+    window.addEventListener('resize', () => {
+      console.log('${nameWithoutDashes}')
+      chart_${nameWithoutDashes}.resize({
+        width:document.getElementById("${chartName}-parent").offsetWidth,
+        height:document.getElementById("${chartName}-parent").offsetHeight}
+      )}
+    );`;
+  const parent = body.getElementById(chartName)?.parentElement;
 
   if (!parent) throw new Error("This chart does not exist!");
 
