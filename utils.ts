@@ -6,7 +6,6 @@ import {
   Element,
   HTMLDocument,
 } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
-import { sha1, sha256 } from "https://deno.land/x/hono@v4.1.4/utils/crypto.ts";
 
 export function createConfig(
   ACCESS_TOKEN: string | undefined,
@@ -144,116 +143,12 @@ export async function getLoggedInAthleteActivities(env: DB) {
   return await response.json();
 }
 
-export function barChart(
-  body: Element,
-  chartName: string,
-  data: chartData
-): Element {
-  const parser = new DOMParser();
-  const dom = parser.parseFromString(body.innerHTML, "text/html");
-
-  const nameWithoutDashes = chartName.replaceAll("-", "_");
-
-  if (dom === null) throw new Error("Body does not exist!");
-
-  const chartScript = dom.createElement("script");
-  chartScript.textContent = `
-    var element = document.getElementById("${chartName}");
-    var chart_${nameWithoutDashes} = echarts.init(element, 'dark',{
-      useCoarsePointer: true,
-      width:document.getElementById("${chartName}-parent").offsetWidth,
-      height:document.getElementById("${chartName}-parent").offsetHeight
-    });
-
-    var options = {
-      tooltip: {
-          trigger: 'axis',
-          confine: true
-      },
-      grid: {
-          left: 50,
-          right: 25,
-          top: 20,
-          bottom: 60,
-      },
-      xAxis: {
-          data: [${data.data_labels.map((date) => JSON.stringify(date))}],
-          axisLabel: {
-              // interval: 1,
-              rotate: 40
-          }
-      },
-      yAxis: {
-          splitNumber: 3,
-          axisLabel: {
-              formatter: '{value} km'
-          },
-      },
-      series: [{
-          type: 'bar',
-          data: [${data.data_values.toString()}],
-          symbolSize: 10,
-          markLine: {
-              data: [{
-                  type: 'median',
-                  name: 'Median',
-                  label: {
-                      formatter: function (params) {
-                          return Math.round(params.value)
-                      .toString();
-                      },
-                      show: true,
-                  }
-              }],
-              lineStyle: {
-                  color: 'white'
-              }
-          },
-          itemStyle: {
-              color: 'rgb(242, 102, 171)'
-          },
-          tooltip: {
-              valueFormatter: value => value + ' kilometers'
-          },
-      }]
-    };
-    chart_${nameWithoutDashes}.setOption(options);
-    window.addEventListener('resize', () => {
-      console.log('${nameWithoutDashes}')
-      chart_${nameWithoutDashes}.resize({
-        width:document.getElementById("${chartName}-parent").offsetWidth,
-        height:document.getElementById("${chartName}-parent").offsetHeight}
-      )}
-    );`;
-  const parent = body.getElementById(chartName)?.parentElement;
-
-  if (!parent) throw new Error("This chart does not exist!");
-
-  parent.appendChild(chartScript);
-  return body;
-}
-
 function getWeekStart(originalDate: Date): string {
   const date = new Date(originalDate.getTime());
   const day = date.getDay();
   date.setDate(date.getDate() - day + (day === 0 ? -6 : 1));
   return `${date.getMonth()}-${date.getDate()}`;
 }
-
-// function _groupActivitiesByWeek(data: Activity[]): {
-//   [key: string]: Activity[];
-// } {
-//   const grouped: { [key: string]: Activity[] } = {};
-//   data.forEach((item) => {
-//     const date = new Date(item.start_date);
-//     const week = `${date.getFullYear()}-${getWeek(date)}`;
-//     if (!(week in grouped)) {
-//       grouped[week] = [];
-//     }
-//     grouped[week].push(item);
-//   });
-//   return grouped;
-// }
 
 export async function getWeeklyDistance(env: DB) {
   const data: Activity[] = await getLoggedInAthleteActivities(env);
@@ -340,3 +235,117 @@ export async function addCharts(body: Element, env: DB) {
   }
   return bodyWithCharts;
 }
+
+export function barChart(
+  body: Element,
+  chartName: string,
+  data: chartData
+): Element {
+  const parser = new DOMParser();
+  const dom = parser.parseFromString(body.innerHTML, "text/html");
+
+  const nameWithoutDashes = chartName.replaceAll("-", "_");
+
+  if (dom === null) throw new Error("Body does not exist!");
+
+  const chartScript = dom.createElement("script");
+  chartScript.textContent = `
+    var element = document.getElementById("${chartName}");
+    var chart_${nameWithoutDashes} = echarts.init(element, 'dark',{
+      useCoarsePointer: true,
+      width:document.getElementById("${chartName}-parent").offsetWidth,
+      height:document.getElementById("${chartName}-parent").offsetHeight
+    });
+
+    var options = {
+      tooltip: {
+          trigger: 'axis',
+          confine: true
+      },
+      grid: {
+          left: 50,
+          right: 25,
+          top: 10,
+          bottom: 95,
+      },
+      xAxis: {
+          data: [${data.data_labels.map((date) => JSON.stringify(date))}],
+          axisLabel: {
+              // interval: 1,
+              rotate: 40
+          }
+      },
+      yAxis: {
+          splitNumber: 3,
+          axisLabel: {
+              formatter: '{value} km'
+          },
+      },
+      series: [{
+          type: 'bar',
+          data: [${data.data_values.toString()}],
+          symbolSize: 10,
+          markLine: {
+              data: [{
+                  type: 'median',
+                  name: 'Median',
+                  label: {
+                      formatter: function (params) {
+                          return Math.round(params.value)
+                      .toString();
+                      },
+                      show: true,
+                  }
+              }],
+              lineStyle: {
+                  color: 'white'
+              }
+          },
+          itemStyle: {
+              color: 'rgb(242, 102, 171)'
+          },
+          tooltip: {
+              valueFormatter: value => value + ' kilometers'
+          },
+      }]
+    };
+    chart_${nameWithoutDashes}.setOption(options);
+    window.addEventListener('resize', () => {
+      console.log('${nameWithoutDashes}')
+      chart_${nameWithoutDashes}.resize({
+        width:document.getElementById("${chartName}-parent").offsetWidth,
+        height:document.getElementById("${chartName}-parent").offsetHeight}
+      )}
+    );`;
+
+  const chart = body.getElementById(chartName);
+  const parent = chart?.parentElement;
+
+  if (!parent) throw new Error("This chart does not exist!");
+
+  const chartTitle = dom.createElement("h1");
+  chartTitle.setAttribute(
+    "style",
+    "color:white; text-align:center; padding-top:10px"
+  );
+  chartTitle.innerHTML = data.title;
+
+  parent.insertBefore(chartTitle, chart);
+  parent.appendChild(chartScript);
+  return body;
+}
+
+// function _groupActivitiesByWeek(data: Activity[]): {
+//   [key: string]: Activity[];
+// } {
+//   const grouped: { [key: string]: Activity[] } = {};
+//   data.forEach((item) => {
+//     const date = new Date(item.start_date);
+//     const week = `${date.getFullYear()}-${getWeek(date)}`;
+//     if (!(week in grouped)) {
+//       grouped[week] = [];
+//     }
+//     grouped[week].push(item);
+//   });
+//   return grouped;
+// }
