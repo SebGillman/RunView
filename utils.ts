@@ -153,7 +153,7 @@ function getWeekStart(originalDate: Date): string {
 export async function getWeeklyDistance(env: DB) {
   const data: Activity[] = await getLoggedInAthleteActivities(env);
   const grouped: { [key: string]: number } = {};
-  data.forEach((item) => {
+  data.reverse().forEach((item) => {
     const date = new Date(item.start_date);
     const week = `${date.getFullYear()}-${getWeekStart(date)}`;
     if (!(week in grouped)) {
@@ -162,6 +162,32 @@ export async function getWeeklyDistance(env: DB) {
     grouped[week] = grouped[week] + item.distance / 1000;
   });
   return grouped;
+}
+
+export async function getCumulativeYearDistance(env: DB, year: string) {
+  const data: Activity[] = await getLoggedInAthleteActivities(env);
+  const grouped: { [key: string]: number } = {};
+  let prevWeek: string;
+  data
+    .filter((activity) => {
+      return activity.start_date.startsWith(year);
+    })
+    .reverse()
+    .forEach((item) => {
+      const date = new Date(item.start_date);
+      const week = `${date.getFullYear()}-${getWeekStart(date)}`;
+      if (!(week in grouped)) {
+        prevWeek ? (grouped[week] = grouped[prevWeek]) : (grouped[week] = 0);
+        prevWeek = week;
+      }
+      grouped[week] = grouped[week] + item.distance / 1000;
+    });
+  return grouped;
+}
+
+export async function getCurrentCumulativeYearDistance(env: DB) {
+  const res = await getCumulativeYearDistance(env, "2024");
+  return res;
 }
 
 export async function getHTMLDoc(): Promise<HTMLDocument> {
@@ -182,6 +208,7 @@ export async function addCharts(body: Element, env: DB) {
     [key: string]: (env: DB) => Promise<{ [key: string]: number }>;
   } = {
     getWeeklyDistance: getWeeklyDistance,
+    getCurrentCumulativeYearDistance: getCurrentCumulativeYearDistance,
   };
 
   const chartTypes: {
@@ -223,8 +250,8 @@ export async function addCharts(body: Element, env: DB) {
       title: chartTitle,
       xlabel: chartXlabel,
       ylabel: chartYlabel,
-      data_labels: Object.keys(data).toReversed(),
-      data_values: Object.values(data).toReversed(),
+      data_labels: Object.keys(data),
+      data_values: Object.values(data),
     };
 
     bodyWithCharts = chartTypes[chartType](
