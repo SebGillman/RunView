@@ -140,7 +140,10 @@ export async function getLoggedInAthleteActivities(env: DB) {
       }),
     }
   );
-  return await response.json();
+  const res: Activity[] = await response.json();
+  return res.filter((activity) => {
+    return activity.sport_type === "Run";
+  });
 }
 
 function getWeekStart(originalDate: Date): string {
