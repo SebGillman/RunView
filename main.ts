@@ -55,7 +55,8 @@ ${body.innerHTML}
 </body>
 `);
   } catch (error) {
-    return c.text(error);
+    console.log(error);
+    return c.redirect("/");
   }
 });
 
