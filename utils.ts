@@ -112,6 +112,46 @@ export async function getTokenExchange(c: Context, env: DB) {
   }
 }
 
+export async function refreshTokensIfExpired(env: DB) {
+  const expiryTime = Number(getEnvVar(env, "ACCESS_TOKEN_EXPIRES_AT"));
+  const currentTime = new Date().getTime() / 1000;
+
+  const CLIENT_ID = getEnvVar(env, "CLIENT_ID");
+  const CLIENT_SECRET = getEnvVar(env, "CLIENT_SECRET");
+  let REFRESH_TOKEN = getEnvVar(env, "REFRESH_TOKEN");
+
+  if (expiryTime > currentTime + 3600) return;
+
+  const refreshResponse = await fetch(
+    "https://www.strava.com/api/v3/oauth/token",
+    {
+      method: "POST",
+      body: new URLSearchParams({
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        refresh_token: REFRESH_TOKEN,
+        grant_type: "refresh_token",
+      }),
+    }
+  );
+
+  if (!refreshResponse.ok) throw new Error("Refresh Failed!");
+
+  const refreshData = await refreshResponse.json();
+
+  const tokenExpiresAt = refreshData.expires_at;
+  REFRESH_TOKEN = refreshData.refresh_token;
+  const ACCESS_TOKEN = refreshData.access_token;
+
+  env.execute(`
+      UPDATE env
+      SET ACCESS_TOKEN = '${ACCESS_TOKEN}',
+      REFRESH_TOKEN = '${REFRESH_TOKEN}',
+      ACCESS_TOKEN_EXPIRES_AT = '${tokenExpiresAt as string}'
+      WHERE CLIENT_ID = '${CLIENT_ID}';
+      `);
+}
+
 export function getEnvVar(env: DB, column: string) {
   return env.query(`SELECT ${column} FROM env;`)[0][0] as string;
 }

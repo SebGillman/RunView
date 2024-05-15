@@ -6,6 +6,7 @@ import {
   getAccessUrl,
   getHTMLDoc,
   getTokenExchange,
+  refreshTokensIfExpired,
 } from "./utils.ts";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
 
@@ -42,26 +43,27 @@ app.get("/auth/access-code", async (c: Context) => {
 
 app.get("/activities", async (c: Context) => {
   try {
+    await refreshTokensIfExpired(env);
     let { head, body } = await getHTMLDoc();
 
     body = await addCharts(body, env);
 
     return c.html(`
-<head>
-${head.innerHTML}
-</head>
-<body>
-${body.innerHTML}
-</body>
-`);
+        <head>
+        ${head.innerHTML}
+        </head>
+        <body>
+        ${body.innerHTML}
+        </body>
+    `);
   } catch (error) {
     console.log(error);
-    return c.redirect("/");
+    return c.redirect("/auth/login");
   }
 });
 
 app.get("/", (c: Context) => {
-  return c.redirect("/auth/login");
+  return c.redirect("/activities");
 });
 
 Deno.serve(app.fetch);
