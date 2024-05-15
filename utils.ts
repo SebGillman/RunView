@@ -147,7 +147,7 @@ function getWeekStart(originalDate: Date): string {
   const date = new Date(originalDate.getTime());
   const day = date.getDay();
   date.setDate(date.getDate() - day + (day === 0 ? -6 : 1));
-  return `${date.getMonth()}-${date.getDate()}`;
+  return `${date.getMonth() + 1}-${date.getDate()}`;
 }
 
 export async function getWeeklyDistance(env: DB) {
