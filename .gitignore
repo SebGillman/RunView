@@ -1,4 +1,4 @@
 .env
 .gitattributes
 .vscode
-*.db
+auth.db
