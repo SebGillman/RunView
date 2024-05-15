@@ -293,8 +293,8 @@ export function barChart(
           confine: true
       },
       grid: {
-          left: 50,
-          right: 25,
+          left: 60,
+          right: 35,
           top: 10,
           bottom: 95,
       },
@@ -341,7 +341,6 @@ export function barChart(
     };
     chart_${nameWithoutDashes}.setOption(options);
     window.addEventListener('resize', () => {
-      console.log('${nameWithoutDashes}')
       chart_${nameWithoutDashes}.resize({
         width:document.getElementById("${chartName}-parent").offsetWidth,
         height:document.getElementById("${chartName}-parent").offsetHeight}
