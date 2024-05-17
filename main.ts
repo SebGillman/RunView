@@ -7,7 +7,7 @@ import {
   getHTMLDoc,
   getTokenExchange,
   refreshTokensIfExpired,
-} from "./utils.ts";
+} from "./utils/index.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
 const envFile = await load();
