@@ -27,8 +27,6 @@ app.get("/auth/login", async (c: Context) => {
 app.get("/auth/access-code", async (c: Context) => {
   try {
     await getTokenExchange(c, envFile, env);
-
-    // const me = await getLoggedInAthlete(env);
     return c.redirect("/activities");
   } catch (error) {
     return c.text(error);
@@ -48,18 +46,13 @@ app.get("/auth/access-code", async (c: Context) => {
 app.get("/activities", async (c: Context) => {
   try {
     await refreshTokensIfExpired(envFile, env);
-    let { head, body } = await getHTMLDoc();
+    const doc = await getHTMLDoc();
+    doc.body = await addCharts(doc.body, env);
+    const docHtmlText = doc.documentElement?.outerHTML;
 
-    body = await addCharts(body, env);
+    if (!docHtmlText) throw new Error("Failed to obtain document html");
 
-    return c.html(`
-        <head>
-        ${head.innerHTML}
-        </head>
-        <body>
-        ${body.innerHTML}
-        </body>
-    `);
+    return c.html(docHtmlText);
   } catch (error) {
     console.error(error);
     return c.redirect("/auth/login");
