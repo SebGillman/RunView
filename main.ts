@@ -33,16 +33,6 @@ app.get("/auth/access-code", async (c: Context) => {
   }
 });
 
-// app.get("/landing-page", async (c: Context) => {
-//   try {
-//     let body = `<div id="myChart-parent" style="width:45%; height:50%;">
-//   <canvas id="myChart" style="margin:20px"></canvas>
-// </div>`;
-//   } catch (error) {
-//     return c.text(error);
-//   }
-// });
-
 app.get("/activities", async (c: Context) => {
   try {
     await refreshTokensIfExpired(envFile, env);
