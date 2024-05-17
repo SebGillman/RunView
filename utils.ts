@@ -1,4 +1,5 @@
 import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { Client } from "npm:@libsql/client@0.6.0/node";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
 import { Activity, chartData } from "./types.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.45/src/dom/dom-parser.ts";
@@ -7,38 +8,10 @@ import {
   HTMLDocument,
 } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
 
-export function createConfig(
-  ACCESS_TOKEN: string | undefined,
-  CLIENT_ID: string | undefined,
-  CLIENT_SECRET: string | undefined,
-  REDIRECT_URI: string | undefined
-) {
-  if (!ACCESS_TOKEN) {
-    throw new Error("No AUTH_TOKEN provided");
-  }
-  if (!CLIENT_ID) {
-    throw new Error("No CLIENT_ID provided");
-  }
-  if (!CLIENT_SECRET) {
-    throw new Error("No CLIENT_SECRET provided");
-  }
-  if (!REDIRECT_URI) {
-    throw new Error("No REDIRECT_URI provided");
-  }
-  return {
-    access_token: ACCESS_TOKEN,
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    redirect_uri: REDIRECT_URI,
-    approval_prompt: "auto",
-    grant_type: "authorization_code",
-  };
-}
-
-export async function getAccessUrl(env: DB): Promise<string> {
+export function getAccessUrl(env: Record<string, string>): string {
   try {
-    const CLIENT_ID = await getEnvVar(env, "CLIENT_ID");
-    const REDIRECT_URI = await getEnvVar(env, "REDIRECT_URI");
+    const CLIENT_ID = env["CLIENT_ID"];
+    const REDIRECT_URI = "http://localhost:8000/auth/access-code";
 
     const queryParams = {
       client_id: CLIENT_ID,
@@ -61,11 +34,15 @@ export async function getAccessUrl(env: DB): Promise<string> {
   }
 }
 
-export async function getTokenExchange(c: Context, env: DB) {
-  const CLIENT_ID = getEnvVar(env, "CLIENT_ID");
-  const CLIENT_SECRET = getEnvVar(env, "CLIENT_SECRET");
-  let REFRESH_TOKEN = getEnvVar(env, "REFRESH_TOKEN");
-  let ACCESS_TOKEN = getEnvVar(env, "ACCESS_TOKEN");
+export async function getTokenExchange(
+  c: Context,
+  envFile: Record<string, string>,
+  env: Client
+) {
+  const CLIENT_ID = envFile["CLIENT_ID"];
+  const CLIENT_SECRET = envFile["CLIENT_SECRET"];
+  let REFRESH_TOKEN = (await getEnvVar(env, "REFRESH_TOKEN")) || "";
+  let ACCESS_TOKEN = (await getEnvVar(env, "ACCESS_TOKEN")) || "";
 
   const reqUrl = new URL(c.req.url);
   const reqSearchParams = reqUrl.searchParams;
@@ -74,10 +51,6 @@ export async function getTokenExchange(c: Context, env: DB) {
   }
   const accessCode = reqSearchParams.get("code");
   if (!accessCode) throw new Error("Missing access code");
-  env.execute(`UPDATE env
-      SET ACCESS_CODE = '${accessCode}'
-      WHERE CLIENT_ID = '${CLIENT_ID}';
-      `);
 
   const tokenExchange = await fetch(
     "https://www.strava.com/api/v3/oauth/token",
@@ -91,34 +64,34 @@ export async function getTokenExchange(c: Context, env: DB) {
       }),
     }
   );
-  // console.log(tokenExchange);
-  if (tokenExchange.ok) {
-    const tokenData = await tokenExchange.json();
+  if (!tokenExchange.ok) throw new Error("Token Exchange failed.");
 
-    const tokenExpiresAt = tokenData.expires_at;
-    // const tokenExpiresIn = tokenData.expires_in;
-    REFRESH_TOKEN = tokenData.refresh_token;
-    ACCESS_TOKEN = tokenData.access_token;
+  const tokenData = await tokenExchange.json();
 
-    env.execute(`
-      UPDATE env
-      SET ACCESS_TOKEN = '${ACCESS_TOKEN}',
-      REFRESH_TOKEN = '${REFRESH_TOKEN}',
-      ACCESS_TOKEN_EXPIRES_AT = '${tokenExpiresAt as string}'
-      WHERE CLIENT_ID = '${CLIENT_ID}';
-      `);
-  } else {
-    throw new Error("Token Exchange failed.");
-  }
+  const tokenExpiresAt = tokenData.expires_at;
+  // const tokenExpiresIn = tokenData.expires_in;
+  REFRESH_TOKEN = tokenData.refresh_token;
+  ACCESS_TOKEN = tokenData.access_token;
+
+  env.execute(`
+    UPDATE env
+    SET ACCESS_TOKEN = '${ACCESS_TOKEN}',
+    REFRESH_TOKEN = '${REFRESH_TOKEN}',
+    ACCESS_TOKEN_EXPIRES_AT = '${tokenExpiresAt as string}'
+    WHERE id = '1';
+    `);
 }
 
-export async function refreshTokensIfExpired(env: DB) {
-  const expiryTime = Number(getEnvVar(env, "ACCESS_TOKEN_EXPIRES_AT"));
+export async function refreshTokensIfExpired(
+  envFile: Record<string, string>,
+  env: Client
+) {
+  const expiryTime = Number(await getEnvVar(env, "ACCESS_TOKEN_EXPIRES_AT"));
   const currentTime = new Date().getTime() / 1000;
 
-  const CLIENT_ID = getEnvVar(env, "CLIENT_ID");
-  const CLIENT_SECRET = getEnvVar(env, "CLIENT_SECRET");
-  let REFRESH_TOKEN = getEnvVar(env, "REFRESH_TOKEN");
+  const CLIENT_ID = envFile["CLIENT_ID"];
+  const CLIENT_SECRET = envFile["CLIENT_SECRET"];
+  let REFRESH_TOKEN = (await getEnvVar(env, "REFRESH_TOKEN")) || "";
 
   if (expiryTime > currentTime + 3600) return;
 
@@ -148,16 +121,20 @@ export async function refreshTokensIfExpired(env: DB) {
       SET ACCESS_TOKEN = '${ACCESS_TOKEN}',
       REFRESH_TOKEN = '${REFRESH_TOKEN}',
       ACCESS_TOKEN_EXPIRES_AT = '${tokenExpiresAt as string}'
-      WHERE CLIENT_ID = '${CLIENT_ID}';
+      WHERE id = '1';
       `);
 }
 
-export function getEnvVar(env: DB, column: string) {
-  return env.query(`SELECT ${column} FROM env;`)[0][0] as string;
+export async function getEnvVar(env: Client, column: string) {
+  const res = (await env.execute(`SELECT * FROM env WHERE id = '1';`)).rows[0][
+    column
+  ] as string;
+  // console.log(`Var ${column} is ${res}`);
+  return res;
 }
 
-export async function getLoggedInAthlete(env: DB): Promise<Activity[]> {
-  const ACCESS_TOKEN = getEnvVar(env, "ACCESS_TOKEN");
+export async function getLoggedInAthlete(env: Client): Promise<Activity[]> {
+  const ACCESS_TOKEN = await getEnvVar(env, "ACCESS_TOKEN");
   const response = await fetch("https://www.strava.com/api/v3/athlete", {
     method: "GET",
     headers: new Headers({
@@ -168,8 +145,8 @@ export async function getLoggedInAthlete(env: DB): Promise<Activity[]> {
   return await response.json();
 }
 
-export async function getLoggedInAthleteActivities(env: DB) {
-  const ACCESS_TOKEN = getEnvVar(env, "ACCESS_TOKEN");
+export async function getLoggedInAthleteActivities(env: Client) {
+  const ACCESS_TOKEN = await getEnvVar(env, "ACCESS_TOKEN");
   const response = await fetch(
     "https://www.strava.com/api/v3/athlete/activities?per_page=200",
     {
@@ -180,6 +157,7 @@ export async function getLoggedInAthleteActivities(env: DB) {
       }),
     }
   );
+  if (!response.ok) throw new Error("Retrieval of activities failed!");
   const res: Activity[] = await response.json();
   return res.filter((activity) => {
     return activity.sport_type === "Run";
@@ -193,7 +171,7 @@ function getWeekStart(originalDate: Date): string {
   return `${date.getMonth() + 1}-${date.getDate()}`;
 }
 
-export async function getWeeklyDistance(env: DB) {
+export async function getWeeklyDistance(env: Client) {
   const data: Activity[] = await getLoggedInAthleteActivities(env);
   const grouped: { [key: string]: number } = {};
   data.reverse().forEach((item) => {
@@ -207,7 +185,7 @@ export async function getWeeklyDistance(env: DB) {
   return grouped;
 }
 
-export async function getCumulativeYearDistance(env: DB, year: string) {
+export async function getCumulativeYearDistance(env: Client, year: string) {
   const data: Activity[] = await getLoggedInAthleteActivities(env);
   const grouped: { [key: string]: number } = {};
   let prevWeek: string;
@@ -228,7 +206,7 @@ export async function getCumulativeYearDistance(env: DB, year: string) {
   return grouped;
 }
 
-export async function getCurrentCumulativeYearDistance(env: DB) {
+export async function getCurrentCumulativeYearDistance(env: Client) {
   const res = await getCumulativeYearDistance(env, "2024");
   return res;
 }
@@ -243,12 +221,12 @@ export async function getHTMLDoc(): Promise<HTMLDocument> {
   return doc;
 }
 
-export async function addCharts(body: Element, env: DB) {
+export async function addCharts(body: Element, env: Client) {
   let bodyWithCharts = body;
   const client = new DB("./db/charts.db");
 
   const funcs: {
-    [key: string]: (env: DB) => Promise<{ [key: string]: number }>;
+    [key: string]: (env: Client) => Promise<{ [key: string]: number }>;
   } = {
     getWeeklyDistance: getWeeklyDistance,
     getCurrentCumulativeYearDistance: getCurrentCumulativeYearDistance,
