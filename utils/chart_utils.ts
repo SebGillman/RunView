@@ -53,8 +53,8 @@ export function barChart(
             symbolSize: 10,
             markLine: {
                 data: [{
-                    type: 'median',
-                    name: 'Median',
+                    type: 'average',
+                    name: 'Average',
                     label: {
                         formatter: function (params) {
                             return Math.round(params.value)
@@ -153,8 +153,8 @@ export function lineChart(
             //   symbolSize: 10,
               markLine: {
                   data: [{
-                      type: 'median',
-                      name: 'Median',
+                      type: 'average',
+                      name: 'Average',
                       label: {
                           formatter: function (params) {
                               return Math.round(params.value)
