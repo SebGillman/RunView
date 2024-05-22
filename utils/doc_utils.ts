@@ -8,6 +8,7 @@ import {
 } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
 import {
   barChart,
+  lineChart,
   getCurrentCumulativeYearDistance,
   getWeeklyDistance,
 } from "./index.ts";
@@ -40,6 +41,7 @@ export async function addCharts(body: Element, env: Client) {
       data: chartData
     ) => Element;
   } = {
+    line: lineChart,
     bar: barChart,
   };
 
@@ -64,7 +66,8 @@ export async function addCharts(body: Element, env: Client) {
       chartFunc,
     ] = query[0] as [string, string, string, string, string, string];
 
-    if (!(elementId && chartType === "bar")) continue;
+    if (!(elementId && Object.keys(chartTypes).indexOf(chartType) !== -1))
+      continue;
 
     const data = await funcs[chartFunc](env);
 
