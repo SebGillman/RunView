@@ -3,13 +3,47 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <link
+    href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
+    rel="stylesheet"
+  />    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+
+    <style>
+      .center {
+        margin: auto auto;
+        justify-content: center;
+      }
+      .fixed-navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: #333;
+        padding: 10px 0;
+        z-index: 1000; /* Ensure navbar appears above other content */
+      }
+    </style>
   </head>
   <body style="justify-items: center;"">
+    <nav class="p-4 text-white fixed-navbar shadow-md">
+      <div class="flex center container mx-auto">
+        <a href="https://sebgillman.top">
+          <h1 class="text-3xl m-1 px-10">Sebastian Gillman</h1>
+        </a>
+        <a href="https://sebgillman.top/projects/all/">
+          <h1 class="text-2xl m-2 px-2">Projects</h1>
+        </a>
+        <a href="https://sebgillman.top#education">
+          <h1 class="text-2xl m-2 px-2">Education</h1>
+        </a>
+        <a href="https://sebgillman.top#work">
+          <h1 class="text-2xl m-2 px-2">Work</h1>
+        </a>
+      </div>
+    </nav>
     <div
       id="charts-container"
-      class="w-full h-full flex px-12"
+      class="w-full h-full flex px-12 mt-12"
       style="background-color: #2d294a;"
     >
       <div id="bar-weekly-distance-parent" class="mx-auto my-14 rounded-2xl overflow-hidden shadow-2xl" style="width: 40%; height: 55%; background-color: #100C2A;">
