@@ -1,6 +1,9 @@
 import { Client } from "npm:@libsql/client@0.6.0/node";
-import { Activity } from "../types.ts";
-import { getLoggedInAthleteActivities } from "./index.ts";
+import { Activity, weightMatchData } from "../types.ts";
+import {
+  getLoggedInAthleteActivities,
+  getLoggedInAthleteActivityById,
+} from "./index.ts";
 
 function getWeekStart(originalDate: Date): string {
   const date = new Date(originalDate.getTime());
@@ -9,8 +12,8 @@ function getWeekStart(originalDate: Date): string {
   return `${date.getMonth() + 1}-${date.getDate()}`;
 }
 
-export async function getWeeklyDistance(env: Client, filterYear?: string) {
-  const data: Activity[] = await getLoggedInAthleteActivities(env);
+export async function getWeeklyRunDistance(env: Client, filterYear?: string) {
+  const data: Activity[] = await getLoggedInAthleteActivities(env, "Run");
   const grouped: { [key: string]: number } = {};
   data
     .filter((activity) => {
@@ -53,7 +56,7 @@ export async function getCumulativeWeeklyYearDistance(
   env: Client,
   year: string
 ) {
-  const data: { [key: string]: number } = await getWeeklyDistance(env, year);
+  const data: { [key: string]: number } = await getWeeklyRunDistance(env, year);
   let prev = 0;
   for (const key of Object.keys(data)) {
     data[key] += prev;
@@ -65,4 +68,35 @@ export async function getCumulativeWeeklyYearDistance(
 export async function getCurrentCumulativeYearDistance(env: Client) {
   const res = await getCumulativeWeeklyYearDistance(env, "2024");
   return res;
+}
+
+export async function getTotalWeightTrainingVolume(
+  env: Client,
+  activityId: number
+): Promise<number> {
+  const { description } = await getLoggedInAthleteActivityById(env, activityId);
+  const descriptionRows = description?.split("\n");
+  let totalWeight = 0;
+  if (!descriptionRows) return 0;
+
+  for (const row of descriptionRows) {
+    const weightInfo = extractWeightInfo(row);
+    if (weightInfo === null) continue;
+    let totalVolume = weightInfo.weight * weightInfo.reps;
+    if (weightInfo.unit === "lbs") totalVolume *= 0.45359237;
+    totalWeight += totalVolume;
+  }
+  return totalWeight;
+}
+
+export function extractWeightInfo(rowString: string): weightMatchData | null {
+  const regex = /(\d+)\s*(lbs|kg)\s*x\s*(\d+)/i;
+  const match = rowString.match(regex);
+  if (match) {
+    const weight = parseFloat(match[1]);
+    const unit = match[2].toLowerCase();
+    const reps = parseInt(match[3]);
+    return { weight, unit, reps };
+  }
+  return null;
 }

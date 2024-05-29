@@ -10,7 +10,7 @@ import {
   barChart,
   lineChart,
   getCurrentCumulativeYearDistance,
-  getWeeklyDistance,
+  getWeeklyRunDistance,
 } from "./index.ts";
 
 export async function getHTMLDoc(): Promise<HTMLDocument> {
@@ -30,7 +30,7 @@ export async function addCharts(body: Element, env: Client) {
   const funcs: {
     [key: string]: (env: Client) => Promise<{ [key: string]: number }>;
   } = {
-    getWeeklyDistance: getWeeklyDistance,
+    getWeeklyDistance: getWeeklyRunDistance,
     getCurrentCumulativeYearDistance: getCurrentCumulativeYearDistance,
   };
 

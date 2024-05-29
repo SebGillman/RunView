@@ -57,6 +57,7 @@ export interface Activity {
   pr_count: number;
   total_photo_count: number;
   has_kudoed: boolean;
+  description?: string;
 }
 
 export interface chartJsonData {
@@ -72,4 +73,10 @@ export interface chartData {
   ylabel: string;
   data_labels: string[];
   data_values: number[];
+}
+
+export interface weightMatchData {
+  weight: number;
+  unit: string;
+  reps: number;
 }

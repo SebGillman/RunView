@@ -5,10 +5,12 @@ import {
   addCharts,
   getAccessUrl,
   getHTMLDoc,
+  getLoggedInAthleteActivities,
   getTokenExchange,
   refreshTokensIfExpired,
 } from "./utils/index.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
+import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
 
 const envFile = await load();
 
@@ -51,6 +53,20 @@ app.get("/home", async (c: Context) => {
 
 app.get("/", (c: Context) => {
   return c.redirect("/home");
+});
+
+app.get("/test", async (c: Context) => {
+  const activities = await getLoggedInAthleteActivities(
+    env,
+    "WeightTraining",
+    10
+  );
+  const weights = await Promise.all(
+    activities.map(async (e) => {
+      return await getTotalWeightTrainingVolume(env, e.id);
+    })
+  );
+  return c.text(weights.toString());
 });
 
 Deno.serve(app.fetch);
