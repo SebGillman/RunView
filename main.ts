@@ -27,13 +27,13 @@ app.get("/auth/login", async (c: Context) => {
 app.get("/auth/access-code", async (c: Context) => {
   try {
     await getTokenExchange(c, envFile, env);
-    return c.redirect("/activities");
+    return c.redirect("/home");
   } catch (error) {
     return c.text(error);
   }
 });
 
-app.get("/activities", async (c: Context) => {
+app.get("/home", async (c: Context) => {
   try {
     await refreshTokensIfExpired(envFile, env);
     const doc = await getHTMLDoc();
@@ -50,7 +50,7 @@ app.get("/activities", async (c: Context) => {
 });
 
 app.get("/", (c: Context) => {
-  return c.redirect("/activities");
+  return c.redirect("/home");
 });
 
 Deno.serve(app.fetch);
