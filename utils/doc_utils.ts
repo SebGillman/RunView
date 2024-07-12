@@ -1,6 +1,6 @@
 import { Client } from "npm:@libsql/client@0.6.0/node";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
-import { chartData } from "../types.ts";
+import { ChartData } from "../types.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.45/src/dom/dom-parser.ts";
 import {
   Element,
@@ -38,7 +38,7 @@ export async function addCharts(body: Element, env: Client) {
     [key: string]: (
       body: Element,
       chartName: string,
-      data: chartData
+      data: ChartData
     ) => Element;
   } = {
     line: lineChart,
@@ -71,7 +71,7 @@ export async function addCharts(body: Element, env: Client) {
 
     const data = await funcs[chartFunc](env);
 
-    const outputData: chartData = {
+    const outputData: ChartData = {
       title: chartTitle,
       xlabel: chartXlabel,
       ylabel: chartYlabel,

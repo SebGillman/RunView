@@ -1,11 +1,11 @@
-import { chartData } from "../types.ts";
+import { ChartData } from "../types.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.45/src/dom/dom-parser.ts";
 import { Element } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
 
 export function barChart(
   body: Element,
   chartName: string,
-  data: chartData
+  data: ChartData
 ): Element {
   const parser = new DOMParser();
   const dom = parser.parseFromString(body.innerHTML, "text/html");
@@ -103,7 +103,7 @@ export function barChart(
 export function lineChart(
   body: Element,
   chartName: string,
-  data: chartData
+  data: ChartData
 ): Element {
   const parser = new DOMParser();
   const dom = parser.parseFromString(body.innerHTML, "text/html");

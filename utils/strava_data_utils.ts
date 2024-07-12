@@ -1,8 +1,8 @@
-import { Client } from "npm:@libsql/client@0.6.0/node";
-import { Activity } from "../types.ts";
+import { Client } from "npm:@libsql/core/api";
+import { Activity, Athlete } from "../types.ts";
 import { getEnvVar } from "./index.ts";
 
-export async function getLoggedInAthlete(env: Client): Promise<Activity[]> {
+export async function getLoggedInAthlete(env: Client): Promise<Athlete> {
   const ACCESS_TOKEN = await getEnvVar(env, "ACCESS_TOKEN");
   const response = await fetch("https://www.strava.com/api/v3/athlete", {
     method: "GET",
@@ -11,7 +11,8 @@ export async function getLoggedInAthlete(env: Client): Promise<Activity[]> {
       Accept: "application/json",
     }),
   });
-  return await response.json();
+  const res = await response.json();
+  return res;
 }
 
 export async function getLoggedInAthleteActivities(

@@ -3,6 +3,7 @@
   "packages": {
     "specifiers": {
       "npm:@libsql/client@0.6.0": "npm:@libsql/client@0.6.0",
+      "npm:@libsql/core": "npm:@libsql/core@0.6.0",
       "npm:libsql": "npm:libsql@0.3.10"
     },
     "npm": {

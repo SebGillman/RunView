@@ -1,5 +1,5 @@
 import { Client } from "npm:@libsql/client@0.6.0/node";
-import { Activity, weightMatchData } from "../types.ts";
+import { Activity, WeightMatchData } from "../types.ts";
 import {
   getLoggedInAthleteActivities,
   getLoggedInAthleteActivityById,
@@ -89,7 +89,7 @@ export async function getTotalWeightTrainingVolume(
   return totalWeight;
 }
 
-export function extractWeightInfo(rowString: string): weightMatchData | null {
+export function extractWeightInfo(rowString: string): WeightMatchData | null {
   const regex = /(\d+)\s*(lbs|kg)\s*x\s*(\d+)/i;
   const match = rowString.match(regex);
   if (match) {

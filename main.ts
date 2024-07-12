@@ -4,19 +4,30 @@ import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import {
   addCharts,
   getAccessUrl,
+  getEnvVar,
   getHTMLDoc,
+  getLoggedInAthlete,
   getLoggedInAthleteActivities,
   getTokenExchange,
   refreshTokensIfExpired,
 } from "./utils/index.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
+import { TableName } from "./types.ts";
 
 const envFile = await load();
 
 const env = createClient({
   url: "file:auth.db",
-  encryptionKey: Deno.env.get(envFile["AUTH_ENCRYPTION_KEY"]),
+});
+
+const TURSO_AUTH_TOKEN = envFile["TURSO_AUTH_TOKEN"];
+const TURSO_URL = envFile["TURSO_URL"];
+const BASE_URL = "http://localhost:8000";
+
+const db = createClient({
+  url: TURSO_URL || "",
+  authToken: TURSO_AUTH_TOKEN,
 });
 
 const app = new Hono();
@@ -67,6 +78,36 @@ app.get("/test", async (c: Context) => {
     })
   );
   return c.text(weights.toString());
+});
+
+app.post("/db/setup", async (c: Context) => {
+  const tables = await db.execute(`
+  SELECT name 
+  FROM sqlite_master 
+  WHERE type = 'table';`);
+
+  const { id } = await getLoggedInAthlete(env);
+  if (!id) throw new Error("Failed to retrieve id.");
+
+  console.log("tables", tables.rows.values());
+  if (tables.rows.some((x: TableName) => x.name === `user-${id}`))
+    return c.text("Already exists");
+
+  await db.execute(
+    `CREATE TABLE "user-${id}" (
+      id INTEGER PRIMARY KEY NOT NULL,
+      activity_type TEXT NOT NULL,
+      start_date TEXT NOT NULL,
+      distance REAL,
+      weight REAL,
+      description TEXT,
+      gear_id TEXT,
+      elapsed_time INTEGER,
+      max_speed REAL,
+      average_speed REAL
+    );`
+  );
+  return c.text("Created table.");
 });
 
 Deno.serve(app.fetch);
