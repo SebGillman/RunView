@@ -14,10 +14,10 @@ import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
 import { TableName } from "./types.ts";
 
-const envFile = await load();
-for (const [k, v] of Object.entries(envFile)) {
-  Deno.env.set(k, v);
-}
+// const envFile = await load();
+// for (const [k, v] of Object.entries(envFile)) {
+//   Deno.env.set(k, v);
+// }
 
 const env = createClient({
   url: "file:auth.db",
@@ -35,6 +35,7 @@ const db = createClient({
 const app = new Hono();
 
 app.get("/auth/login", async (c: Context) => {
+  console.log("LOGIN START");
   const accessUrl = await getAccessUrl();
   return c.redirect(accessUrl);
 });

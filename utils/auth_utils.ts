@@ -4,6 +4,7 @@ import { Client } from "npm:@libsql/core/api";
 export function getAccessUrl(): string {
   try {
     const CLIENT_ID = Deno.env.get("CLIENT_ID");
+    console.log("CLIENT ID", CLIENT_ID);
     const REDIRECT_URI = "http://localhost:8000/auth/access-code";
 
     if (!CLIENT_ID) throw new Error("Missing CLIENT_ID");
