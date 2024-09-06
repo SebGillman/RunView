@@ -4,7 +4,6 @@ import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import {
   addCharts,
   getAccessUrl,
-  getEnvVar,
   getHTMLDoc,
   getLoggedInAthlete,
   getLoggedInAthleteActivities,
@@ -16,14 +15,17 @@ import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
 import { TableName } from "./types.ts";
 
 const envFile = await load();
+for (const [k, v] of Object.entries(envFile)) {
+  Deno.env.set(k, v);
+}
 
 const env = createClient({
   url: "file:auth.db",
 });
 
-const TURSO_AUTH_TOKEN = envFile["TURSO_AUTH_TOKEN"];
-const TURSO_URL = envFile["TURSO_URL"];
-const BASE_URL = "http://localhost:8000";
+const TURSO_AUTH_TOKEN = Deno.env.get("TURSO_AUTH_TOKEN");
+const TURSO_URL = Deno.env.get("TURSO_URL");
+const BASE_URL = Deno.env.get("BASE_URL");
 
 const db = createClient({
   url: TURSO_URL || "",
@@ -33,13 +35,13 @@ const db = createClient({
 const app = new Hono();
 
 app.get("/auth/login", async (c: Context) => {
-  const accessUrl = await getAccessUrl(envFile);
+  const accessUrl = await getAccessUrl();
   return c.redirect(accessUrl);
 });
 
 app.get("/auth/access-code", async (c: Context) => {
   try {
-    await getTokenExchange(c, envFile, env);
+    await getTokenExchange(c, env);
     return c.redirect("/home");
   } catch (error) {
     return c.text(error);
@@ -48,7 +50,7 @@ app.get("/auth/access-code", async (c: Context) => {
 
 app.get("/home", async (c: Context) => {
   try {
-    await refreshTokensIfExpired(envFile, env);
+    await refreshTokensIfExpired(env);
     const doc = await getHTMLDoc();
     doc.body = await addCharts(doc.body, env);
     const docHtmlText = doc.documentElement?.outerHTML;

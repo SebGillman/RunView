@@ -1,10 +1,13 @@
 import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
-import { Client } from "npm:@libsql/client@0.6.0/node";
+import { Client } from "npm:@libsql/core/api";
 
-export function getAccessUrl(env: Record<string, string>): string {
+export function getAccessUrl(): string {
   try {
-    const CLIENT_ID = env["CLIENT_ID"];
+    const CLIENT_ID = Deno.env.get("CLIENT_ID");
     const REDIRECT_URI = "http://localhost:8000/auth/access-code";
+
+    if (!CLIENT_ID) throw new Error("Missing CLIENT_ID");
+    if (!REDIRECT_URI) throw new Error("Missing REDIRECT_URI");
 
     const queryParams = {
       client_id: CLIENT_ID,
@@ -27,15 +30,14 @@ export function getAccessUrl(env: Record<string, string>): string {
   }
 }
 
-export async function getTokenExchange(
-  c: Context,
-  envFile: Record<string, string>,
-  env: Client
-) {
-  const CLIENT_ID = envFile["CLIENT_ID"];
-  const CLIENT_SECRET = envFile["CLIENT_SECRET"];
+export async function getTokenExchange(c: Context, env: Client) {
+  const CLIENT_ID = Deno.env.get("CLIENT_ID");
+  const CLIENT_SECRET = Deno.env.get("CLIENT_SECRET");
   let REFRESH_TOKEN = (await getEnvVar(env, "REFRESH_TOKEN")) || "";
   let ACCESS_TOKEN = (await getEnvVar(env, "ACCESS_TOKEN")) || "";
+
+  if (!CLIENT_ID) throw new Error("Missing CLIENT_ID");
+  if (!CLIENT_SECRET) throw new Error("Missing CLIENT_SECRET");
 
   const reqUrl = new URL(c.req.url);
   const reqSearchParams = reqUrl.searchParams;
@@ -75,16 +77,16 @@ export async function getTokenExchange(
       `);
 }
 
-export async function refreshTokensIfExpired(
-  envFile: Record<string, string>,
-  env: Client
-) {
+export async function refreshTokensIfExpired(env: Client) {
   const expiryTime = Number(await getEnvVar(env, "ACCESS_TOKEN_EXPIRES_AT"));
   const currentTime = new Date().getTime() / 1000;
 
-  const CLIENT_ID = envFile["CLIENT_ID"];
-  const CLIENT_SECRET = envFile["CLIENT_SECRET"];
+  const CLIENT_ID = Deno.env.get("CLIENT_ID");
+  const CLIENT_SECRET = Deno.env.get("CLIENT_SECRET");
   let REFRESH_TOKEN = (await getEnvVar(env, "REFRESH_TOKEN")) || "";
+
+  if (!CLIENT_ID) throw new Error("Missing CLIENT_ID");
+  if (!CLIENT_SECRET) throw new Error("Missing CLIENT_SECRET");
 
   if (expiryTime > currentTime + 3600) return;
 
