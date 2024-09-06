@@ -113,3 +113,4 @@ app.post("/db/setup", async (c: Context) => {
 });
 
 Deno.serve(app.fetch);
+Deno.serve({ hostname: "0.0.0.0", port: 8000 }, app.fetch);
