@@ -2,6 +2,7 @@ import { Client } from "npm:@libsql/core/api";
 import { getLoggedInAthlete } from "./index.ts";
 
 export async function createUserDataTables(db: Client, env: Client) {
+  console.log("USER DATA START");
   const tables = await db.execute(`
   SELECT name 
   FROM sqlite_master 

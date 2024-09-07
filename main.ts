@@ -11,13 +11,13 @@ import {
   getTokenExchange,
   refreshTokensIfExpired,
 } from "./utils/index.ts";
-// import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
+import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
 
-// const envFile = await load();
-// for (const [k, v] of Object.entries(envFile)) {
-//   Deno.env.set(k, v);
-// }
+const envFile = await load();
+for (const [k, v] of Object.entries(envFile)) {
+  Deno.env.set(k, v);
+}
 
 console.log("START");
 
@@ -127,4 +127,4 @@ app.post("/db/setup", async (c: Context) => {
   return c.text("Created table.");
 });
 
-Deno.serve({ port: 8000 }, app.fetch);
+Deno.serve({ hostname: "0.0.0.0", port: 8000 }, app.fetch);
