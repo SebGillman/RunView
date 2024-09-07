@@ -70,7 +70,7 @@ export async function getTokenExchange(c: Context, env: Client) {
   ACCESS_TOKEN = tokenData.access_token;
 
   env.execute(`
-      UPDATE env
+      UPDATE "users_strava_auth"
       SET ACCESS_TOKEN = '${ACCESS_TOKEN}',
       REFRESH_TOKEN = '${REFRESH_TOKEN}',
       ACCESS_TOKEN_EXPIRES_AT = '${tokenExpiresAt as string}'
