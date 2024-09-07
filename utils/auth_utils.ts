@@ -122,9 +122,9 @@ export async function refreshTokensIfExpired(env: Client) {
 }
 
 export async function getEnvVar(env: Client, column: string) {
-  const res = (await env.execute(`SELECT * FROM env WHERE id = '1';`)).rows[0][
-    column
-  ] as string;
+  const res = (
+    await env.execute(`SELECT * FROM "users_strava_auth" WHERE id = '1';`)
+  ).rows[0][column] as string;
   // console.log(`Var ${column} is ${res}`);
   return res;
 }

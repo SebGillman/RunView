@@ -3,34 +3,46 @@ import { createClient } from "npm:@libsql/client@0.6.0/node";
 import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import {
   addCharts,
+  createAuthTable,
+  createUserDataTables,
   getAccessUrl,
   getHTMLDoc,
-  getLoggedInAthlete,
   getLoggedInAthleteActivities,
   getTokenExchange,
   refreshTokensIfExpired,
 } from "./utils/index.ts";
-import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
+// import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
-import { TableName } from "./types.ts";
 
 // const envFile = await load();
 // for (const [k, v] of Object.entries(envFile)) {
 //   Deno.env.set(k, v);
 // }
 
-const env = createClient({
-  url: "file:auth.db",
-});
+console.log("START");
 
 const TURSO_AUTH_TOKEN = Deno.env.get("TURSO_AUTH_TOKEN");
 const TURSO_URL = Deno.env.get("TURSO_URL");
+
+const AUTH_TURSO_AUTH_TOKEN = Deno.env.get("AUTH_TURSO_AUTH_TOKEN");
+const AUTH_TURSO_URL = Deno.env.get("AUTH_TURSO_URL");
+
 const BASE_URL = Deno.env.get("BASE_URL");
+
+// TODO: FIND WAY TO GET UUID FOR USERS
+
+const env = createClient({
+  url: AUTH_TURSO_URL || "",
+  authToken: AUTH_TURSO_AUTH_TOKEN,
+});
 
 const db = createClient({
   url: TURSO_URL || "",
   authToken: TURSO_AUTH_TOKEN,
 });
+
+await createAuthTable(env);
+await createUserDataTables(db, env);
 
 const app = new Hono();
 
@@ -66,6 +78,8 @@ app.get("/home", async (c: Context) => {
 });
 
 app.get("/", (c: Context) => {
+  console.log("THERE IS LIFE");
+  // return c.html("<p>hello</p>");
   return c.redirect("/home");
 });
 
@@ -113,6 +127,4 @@ app.post("/db/setup", async (c: Context) => {
   return c.text("Created table.");
 });
 
-Deno.serve(app.fetch);
-Deno.serve({ hostname: "0.0.0.0", port: 8000 }, app.fetch);
 Deno.serve({ port: 8000 }, app.fetch);

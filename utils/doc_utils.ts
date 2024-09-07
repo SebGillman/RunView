@@ -1,4 +1,4 @@
-import { Client } from "npm:@libsql/client@0.6.0/node";
+import { Client } from "npm:@libsql/core/api";
 import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
 import { ChartData } from "../types.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.45/src/dom/dom-parser.ts";
