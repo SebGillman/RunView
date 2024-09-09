@@ -61,7 +61,6 @@ app.get(
     const userId = c.get("userId");
     if (!userId) return c.redirect("/auth/login");
     try {
-      console.log("access code start");
       return c.redirect("/home");
     } catch (error) {
       return c.text(error);
@@ -93,8 +92,6 @@ app.get(
 );
 
 app.get("/", (c: Context) => {
-  console.log("THERE IS LIFE");
-  // return c.html("<p>hello</p>");
   return c.redirect("/home");
 });
 
@@ -125,7 +122,6 @@ app.get(
     if (!CLIENT_SECRET) throw new Error("Missing CLIENT_SECRET");
 
     const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
-    console.log(CLIENT_ID, CLIENT_SECRET);
     const res = await fetch(
       `https://www.strava.com/api/v3/push_subscriptions?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`,
       {
@@ -166,30 +162,19 @@ app.post(
       urlEncodedData.append(element[0], element[1]);
     });
 
-    const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
-
     const response = await fetch(
       "https://www.strava.com/api/v3/push_subscriptions",
       {
         method: "POST",
-        headers: new Headers({
-          // Authorization: `Bearer ${ACCESS_TOKEN}`,
-          // "Content-Type": "application/x-www-form-urlencoded",
-        }),
         body: urlEncodedData,
       }
     );
-    console.log("VERIFICATION DONE");
-    console.log(await response.json());
-    // console.log(response);
     if (!response.ok) return c.text("Subscription Failed!");
-    console.log(response.body);
     return c.text("Subscription made, get incoming to /subscription/listen");
   }
 );
 
 app.get("/subscription/listen", (c: Context) => {
-  console.log("HITS");
   const verifyToken = "fontaines";
 
   const { searchParams } = new URL(c.req.url);
@@ -205,6 +190,13 @@ app.get("/subscription/listen", (c: Context) => {
 
   c.status(200);
   return c.json({ "hub.challenge": hubChallenge });
+});
+
+app.post("/subscription/listen", async (c: Context) => {
+  const res = await c.req.json();
+  console.log("WEBHOOK", res);
+  // TODO: CRUD CONTROLS ON TENANT DB
+  return;
 });
 
 app.post("/db/setup", async (c: Context) => {
