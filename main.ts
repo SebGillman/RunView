@@ -6,6 +6,7 @@ import {
   createAuthTable,
   createUserDataTables,
   getAccessUrl,
+  getEnvVar,
   getHTMLDoc,
   getLoggedInAthleteActivities,
   getSession,
@@ -111,34 +112,103 @@ app.get("/test", async (c: Context) => {
   return c.text(weights.toString());
 });
 
+app.get(
+  "/subscription/view",
+  getSession,
+  refreshTokensIfExpired(env),
+  async (c: Context) => {
+    const CLIENT_ID = Deno.env.get("CLIENT_ID");
+    const CLIENT_SECRET = Deno.env.get("CLIENT_SECRET");
+
+    if (!CLIENT_ID) throw new Error("Missing CLIENT_ID");
+    if (!CLIENT_SECRET) throw new Error("Missing CLIENT_SECRET");
+
+    const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
+    console.log(CLIENT_ID, CLIENT_SECRET);
+    const res = await fetch(
+      `https://www.strava.com/api/v3/push_subscriptions?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`,
+      {
+        method: "GET",
+        headers: new Headers({
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          Accept: "application/json",
+        }),
+      }
+    );
+    const resJson = await res.json();
+    return c.json(resJson);
+  }
+);
+
+app.post(
+  "/subscription/create",
+  getSession,
+  refreshTokensIfExpired(env),
+  async (c: Context) => {
+    const verifyToken = "fontaines";
+
+    const CLIENT_ID = Deno.env.get("CLIENT_ID");
+    const CLIENT_SECRET = Deno.env.get("CLIENT_SECRET");
+
+    if (!CLIENT_ID) throw new Error("Missing CLIENT_ID");
+    if (!CLIENT_SECRET) throw new Error("Missing CLIENT_SECRET");
+
+    const urlEncodedData = new FormData();
+    const formEntries = [
+      ["client_id", CLIENT_ID],
+      ["client_secret", CLIENT_SECRET],
+      ["callback_url", BASE_URL + "/subscription/listen"],
+      ["verify_token", verifyToken],
+    ];
+
+    formEntries.forEach((element) => {
+      urlEncodedData.append(element[0], element[1]);
+    });
+
+    const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
+
+    const response = await fetch(
+      "https://www.strava.com/api/v3/push_subscriptions",
+      {
+        method: "POST",
+        headers: new Headers({
+          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        }),
+        body: urlEncodedData,
+      }
+    );
+    console.log("VERIFICATION DONE");
+    console.log(response);
+    if (!response.ok) return c.text("Subscription Failed!");
+    console.log(response.body);
+    return c.text("Subscription made, get incoming to /subscription/listen");
+  }
+);
+
+app.get("/subscription/listen", (c: Context) => {
+  console.log("CALLBACK STARTED");
+  console.log("REQUEST", c.req);
+  const verifyToken = "fontaines";
+
+  const { searchParams } = new URL(c.req.url);
+  const hubMode = searchParams.get("hub_mode");
+  const hubChallenge = searchParams.get("hub_challenge");
+  const hubVerifyToken = searchParams.get("hub_verify_token");
+
+  if (hubVerifyToken !== verifyToken)
+    throw new Error("Incorrect verification token!");
+
+  if (hubMode !== "subscribe" || !hubChallenge)
+    throw new Error("Request invalid!");
+
+  c.status(200);
+  return c.json({ "hub.challenge": hubChallenge });
+});
+
 app.post("/db/setup", async (c: Context) => {
-  const tables = await db.execute(`
-  SELECT name 
-  FROM sqlite_master 
-  WHERE type = 'table';`);
-
-  const { id } = await getLoggedInAthlete(env);
-  if (!id) throw new Error("Failed to retrieve id.");
-
-  console.log("tables", tables.rows.values());
-  if (tables.rows.some((x: TableName) => x.name === `user-${id}`))
-    return c.text("Already exists");
-
-  await db.execute(
-    `CREATE TABLE "user-${id}" (
-      id INTEGER PRIMARY KEY NOT NULL,
-      activity_type TEXT NOT NULL,
-      start_date TEXT NOT NULL,
-      distance REAL,
-      weight REAL,
-      description TEXT,
-      gear_id TEXT,
-      elapsed_time INTEGER,
-      max_speed REAL,
-      average_speed REAL
-    );`
-  );
-  return c.text("Created table.");
+  await createAuthTable(env);
+  await createUserDataTables(c, db, env);
 });
 
 Deno.serve({ hostname: "0.0.0.0", port: 8000 }, app.fetch);

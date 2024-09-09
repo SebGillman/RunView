@@ -155,6 +155,22 @@ export interface WeightMatchData {
   unit: string;
   reps: number;
 }
+
+export interface WebHookRequest {
+  aspect_type: "create" | "update" | "delete";
+  event_time: number;
+  object_id: number;
+  object_type: "athlete" | "activity";
+  owner_id: number;
+  subscription_id: number;
+  updates: {
+    title?: string;
+    type?: string;
+    private?: boolean;
+    authorized?: boolean;
+  };
+}
+
 export interface TableName {
   name: string;
 }
