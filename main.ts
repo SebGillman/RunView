@@ -9,10 +9,11 @@ import {
   getEnvVar,
   getHTMLDoc,
   getLoggedInAthleteActivities,
-  getSession,
+  getSessionFromCookie,
+  getSessionFromHeader,
   getTokenExchange,
   refreshTokensIfExpired,
-  setSession,
+  setSessionCookie,
 } from "./utils/index.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
@@ -55,7 +56,7 @@ app.get("/auth/login", async (c: Context) => {
 app.get(
   "/auth/access-code",
   getTokenExchange(env),
-  setSession,
+  setSessionCookie,
   (c: Context) => {
     const userId = c.get("userId");
     if (!userId) return c.redirect("/auth/login");
@@ -70,7 +71,7 @@ app.get(
 
 app.get(
   "/home",
-  getSession,
+  getSessionFromCookie,
   refreshTokensIfExpired(env),
   async (c: Context) => {
     const userId = c.get("userId");
@@ -114,7 +115,7 @@ app.get("/test", async (c: Context) => {
 
 app.get(
   "/subscription/view",
-  getSession,
+  getSessionFromCookie,
   refreshTokensIfExpired(env),
   async (c: Context) => {
     const CLIENT_ID = Deno.env.get("CLIENT_ID");
@@ -142,7 +143,7 @@ app.get(
 
 app.post(
   "/subscription/create",
-  getSession,
+  getSessionFromHeader,
   refreshTokensIfExpired(env),
   async (c: Context) => {
     const verifyToken = "fontaines";

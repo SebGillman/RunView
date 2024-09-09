@@ -152,7 +152,10 @@ export async function getEnvVar(c: Context, env: Client, column: string) {
   return res;
 }
 
-export const getSession = async (c: Context, next: () => Promise<void>) => {
+export const getSessionFromCookie = async (
+  c: Context,
+  next: () => Promise<void>
+) => {
   const cookieHeader = c.req.header("Cookie");
   if (cookieHeader) {
     const cookies = Object.fromEntries(
@@ -164,12 +167,25 @@ export const getSession = async (c: Context, next: () => Promise<void>) => {
   await next();
 };
 
-export const setSession = async (c: Context, next: () => Promise<void>) => {
+export const setSessionCookie = async (
+  c: Context,
+  next: () => Promise<void>
+) => {
   console.log("setsession start");
   const sessionId = c.get("userId");
   c.header(
     "Set-Cookie",
     `session_id=${sessionId}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax;Path=/`
   );
+  await next();
+};
+
+export const getSessionFromHeader = async (
+  c: Context,
+  next: () => Promise<void>
+) => {
+  const userId = c.req.header("userId");
+  if (!userId) throw new Error("No user Id.");
+  c.set("userId", userId);
   await next();
 };
