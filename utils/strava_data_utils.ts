@@ -1,9 +1,13 @@
+import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { Client } from "npm:@libsql/core/api";
 import { Activity, Athlete } from "../types.ts";
 import { getEnvVar } from "./index.ts";
 
-export async function getLoggedInAthlete(env: Client): Promise<Athlete> {
-  const ACCESS_TOKEN = await getEnvVar(env, "ACCESS_TOKEN");
+export async function getLoggedInAthlete(
+  c: Context,
+  env: Client
+): Promise<Athlete> {
+  const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
   const response = await fetch("https://www.strava.com/api/v3/athlete", {
     method: "GET",
     headers: new Headers({
@@ -16,12 +20,13 @@ export async function getLoggedInAthlete(env: Client): Promise<Athlete> {
 }
 
 export async function getLoggedInAthleteActivities(
+  c: Context,
   env: Client,
   activityType: string,
   limit?: number
 ) {
   if (!limit) limit = 200;
-  const ACCESS_TOKEN = await getEnvVar(env, "ACCESS_TOKEN");
+  const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
   const response = await fetch(
     `https://www.strava.com/api/v3/athlete/activities?per_page=${limit}`,
     {
@@ -43,10 +48,11 @@ export async function getLoggedInAthleteActivities(
 }
 
 export async function getLoggedInAthleteActivityById(
+  c: Context,
   env: Client,
   id: number
 ): Promise<Activity> {
-  const ACCESS_TOKEN = await getEnvVar(env, "ACCESS_TOKEN");
+  const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
   const response = await fetch(
     `https://www.strava.com/api/v3/activities/${id}`,
     {

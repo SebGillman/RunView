@@ -1,14 +1,19 @@
+import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { Client } from "npm:@libsql/core/api";
 import { getLoggedInAthlete } from "./index.ts";
 
-export async function createUserDataTables(db: Client, env: Client) {
+export async function createUserDataTables(
+  c: Context,
+  db: Client,
+  env: Client
+) {
   // console.log("USER DATA START");
   const tables = await db.execute(`
   SELECT name 
   FROM sqlite_master 
   WHERE type = 'table';`);
 
-  const { id } = await getLoggedInAthlete(env);
+  const { id } = await getLoggedInAthlete(c, env);
   if (!id) throw new Error("Failed to retrieve id.");
 
   if (tables.rows.some((x) => x.name === `user-${id}`)) {

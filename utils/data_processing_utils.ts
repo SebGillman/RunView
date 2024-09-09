@@ -1,4 +1,5 @@
-import { Client } from "npm:@libsql/client@0.6.0/node";
+import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { Client } from "npm:@libsql/core/api";
 import { Activity, WeightMatchData } from "../types.ts";
 import {
   getLoggedInAthleteActivities,
@@ -12,8 +13,12 @@ function getWeekStart(originalDate: Date): string {
   return `${date.getMonth() + 1}-${date.getDate()}`;
 }
 
-export async function getWeeklyRunDistance(env: Client, filterYear?: string) {
-  const data: Activity[] = await getLoggedInAthleteActivities(env, "Run");
+export async function getWeeklyRunDistance(
+  c: Context,
+  env: Client,
+  filterYear?: string
+) {
+  const data: Activity[] = await getLoggedInAthleteActivities(c, env, "Run");
   const grouped: { [key: string]: number } = {};
   data
     .filter((activity) => {
@@ -53,10 +58,15 @@ export async function getWeeklyRunDistance(env: Client, filterYear?: string) {
 }
 
 export async function getCumulativeWeeklyYearDistance(
+  c: Context,
   env: Client,
   year: string
 ) {
-  const data: { [key: string]: number } = await getWeeklyRunDistance(env, year);
+  const data: { [key: string]: number } = await getWeeklyRunDistance(
+    c,
+    env,
+    year
+  );
   let prev = 0;
   for (const key of Object.keys(data)) {
     data[key] += prev;
@@ -65,16 +75,24 @@ export async function getCumulativeWeeklyYearDistance(
   return data;
 }
 
-export async function getCurrentCumulativeYearDistance(env: Client) {
-  const res = await getCumulativeWeeklyYearDistance(env, "2024");
+export async function getCurrentCumulativeYearDistance(
+  c: Context,
+  env: Client
+) {
+  const res = await getCumulativeWeeklyYearDistance(c, env, "2024");
   return res;
 }
 
 export async function getTotalWeightTrainingVolume(
+  c: Context,
   env: Client,
   activityId: number
 ): Promise<number> {
-  const { description } = await getLoggedInAthleteActivityById(env, activityId);
+  const { description } = await getLoggedInAthleteActivityById(
+    c,
+    env,
+    activityId
+  );
   const descriptionRows = description?.split("\n");
   let totalWeight = 0;
   if (!descriptionRows) return 0;

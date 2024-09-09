@@ -12,6 +12,7 @@ import {
   getCurrentCumulativeYearDistance,
   getWeeklyRunDistance,
 } from "./index.ts";
+import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 
 export async function getHTMLDoc(): Promise<HTMLDocument> {
   const parser = new DOMParser();
@@ -23,12 +24,15 @@ export async function getHTMLDoc(): Promise<HTMLDocument> {
   return doc;
 }
 
-export async function addCharts(body: Element, env: Client) {
+export async function addCharts(c: Context, body: Element, env: Client) {
   let bodyWithCharts = body;
   const client = new DB("./db/charts.db");
 
   const funcs: {
-    [key: string]: (env: Client) => Promise<{ [key: string]: number }>;
+    [key: string]: (
+      c: Context,
+      env: Client
+    ) => Promise<{ [key: string]: number }>;
   } = {
     getWeeklyDistance: getWeeklyRunDistance,
     getCurrentCumulativeYearDistance: getCurrentCumulativeYearDistance,
@@ -69,7 +73,7 @@ export async function addCharts(body: Element, env: Client) {
     if (!(elementId && Object.keys(chartTypes).indexOf(chartType) !== -1))
       continue;
 
-    const data = await funcs[chartFunc](env);
+    const data = await funcs[chartFunc](c, env);
 
     const outputData: ChartData = {
       title: chartTitle,
