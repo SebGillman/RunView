@@ -173,14 +173,15 @@ app.post(
       {
         method: "POST",
         headers: new Headers({
-          Authorization: `Bearer ${ACCESS_TOKEN}`,
+          // Authorization: `Bearer ${ACCESS_TOKEN}`,
           "Content-Type": "application/x-www-form-urlencoded",
         }),
         body: urlEncodedData,
       }
     );
     console.log("VERIFICATION DONE");
-    console.log(response);
+    console.log(await response.json());
+    // console.log(response);
     if (!response.ok) return c.text("Subscription Failed!");
     console.log(response.body);
     return c.text("Subscription made, get incoming to /subscription/listen");
@@ -188,6 +189,7 @@ app.post(
 );
 
 app.get("/subscription/listen", (c: Context) => {
+  console.log("HITS");
   const verifyToken = "fontaines";
 
   const { searchParams } = new URL(c.req.url);
