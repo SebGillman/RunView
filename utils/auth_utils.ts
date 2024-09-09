@@ -169,7 +169,7 @@ export const setSession = async (c: Context, next: () => Promise<void>) => {
   const sessionId = c.get("userId");
   c.header(
     "Set-Cookie",
-    `session_id=${sessionId}; HttpOnly; Max-Age=86400; SameSite=Lax;Path=/`
+    `session_id=${sessionId}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax;Path=/`
   );
   await next();
 };
