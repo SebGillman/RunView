@@ -193,9 +193,13 @@ app.get("/subscription/listen", (c: Context) => {
   const verifyToken = "fontaines";
 
   const { searchParams } = new URL(c.req.url);
-  const hubMode = searchParams.get("hub_mode");
-  const hubChallenge = searchParams.get("hub_challenge");
-  const hubVerifyToken = searchParams.get("hub_verify_token");
+  const hubMode = searchParams.get("hub.mode");
+  const hubChallenge = searchParams.get("hub.challenge");
+  const hubVerifyToken = searchParams.get("hub.verify_token");
+
+  console.log("hubMode", hubMode);
+  console.log("hubChallenge", hubChallenge);
+  console.log("hubVerifyToken", hubVerifyToken);
 
   if (hubVerifyToken !== verifyToken)
     throw new Error("Incorrect verification token!");
