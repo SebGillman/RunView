@@ -1,5 +1,6 @@
 // /** @jsxImportSource https://esm.sh/hono@v4.1.4/jsx */
 import { createClient } from "npm:@libsql/client@0.6.0/node";
+import { Client } from "npm:@libsql/core/api";
 import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import {
   addCharts,
@@ -33,12 +34,12 @@ const AUTH_TURSO_URL = Deno.env.get("AUTH_TURSO_URL");
 
 const BASE_URL = Deno.env.get("BASE_URL");
 
-const env = createClient({
+const env: Client = createClient({
   url: AUTH_TURSO_URL || "",
   authToken: AUTH_TURSO_AUTH_TOKEN,
 });
 
-const db = createClient({
+const db: Client = createClient({
   url: TURSO_URL || "",
   authToken: TURSO_AUTH_TOKEN,
 });
