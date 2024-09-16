@@ -1,6 +1,5 @@
 import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { Client } from "npm:@libsql/core/api";
-import { getLoggedInAthlete } from "./index.ts";
 import { getLoggedInAthlete, getLoggedInAthleteActivityById } from "./index.ts";
 import { Athlete, WebHookRequest } from "../types.ts";
 import { Activity } from "../types.ts";
@@ -156,6 +155,27 @@ export async function createUserDataTables(
     console.log("Created activity data table.");
   }
 
+  const triggers = await db.execute(`
+      SELECT name
+      FROM sqlite_master
+      WHERE type = 'trigger'
+        AND name = 'delete_activities_on_delete_athlete';`);
+
+  if (
+    triggers.rows.every(
+      (row) => row.name !== "delete_activities_on_delete_athlete"
+    )
+  ) {
+    await db.execute(`
+    CREATE TRIGGER 'delete_activities_on_delete_athlete'
+    AFTER DELETE ON users
+    FOR EACH ROW
+    BEGIN
+      DELETE FROM activities
+      WHERE athlete_id = OLD.id;
+    END;
+    `);
+  }
   return;
 }
 
