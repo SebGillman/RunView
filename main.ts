@@ -6,6 +6,7 @@ import {
   addCharts,
   createAuthTable,
   createUserDataTables,
+  eventHandler,
   getAccessUrl,
   getEnvVar,
   getHTMLDoc,
@@ -18,6 +19,7 @@ import {
 } from "./utils/index.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
+import { WebHookRequest } from "./types.ts";
 
 const envFile = await load();
 for (const [k, v] of Object.entries(envFile)) {
@@ -194,10 +196,10 @@ app.get("/subscription/listen", (c: Context) => {
 });
 
 app.post("/subscription/listen", async (c: Context) => {
-  const res = await c.req.json();
-  console.log("WEBHOOK", res);
-  // TODO: CRUD CONTROLS ON TENANT DB
-  return;
+  const event: WebHookRequest = await c.req.json();
+
+  const res = await eventHandler(c, db, env, event);
+  return c.json({ Result: res ?? "Error" });
 });
 
 app.post("/db/setup", async (c: Context) => {

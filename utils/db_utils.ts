@@ -181,3 +181,89 @@ export async function createAuthTable(env: Client) {
   console.log("User strava auth table created");
   return;
 }
+
+async function addActivityToDbById(
+  c: Context,
+  db: Client,
+  env: Client,
+  table: string,
+  objectId: number
+) {
+  const funcMap: {
+    [key: string]: (
+      c: Context,
+      env: Client,
+      _objectId: number
+    ) => Promise<Activity | Athlete>;
+  } = {
+    users: (c: Context, env: Client, _objectId: number) =>
+      getLoggedInAthlete(c, env),
+    activities: (c: Context, env: Client, objectId: number) =>
+      getLoggedInAthleteActivityById(c, env, objectId),
+  };
+
+  const object = await funcMap[table](c, env, objectId);
+
+  const columns = Object.keys(object)
+    .map((column) => JSON.stringify(column))
+    .join(", ");
+  const values = Object.values(object)
+    .map((value) => `'${JSON.stringify(value)}'`)
+    .join(", ");
+
+  const res = await db.execute(`
+      INSERT INTO ${table} (${columns})
+      VALUES (${values})
+      `);
+  return res;
+}
+
+export async function eventHandler(
+  c: Context,
+  db: Client,
+  env: Client,
+  event: WebHookRequest
+) {
+  const objectType = event.object_type;
+  let table;
+  if (objectType == "athlete") {
+    table = "users";
+  } else if (objectType == "activity") {
+    table = "activities";
+  }
+  if (!table) throw new Error("Invalid webhook payload");
+
+  const ownerId = event.owner_id;
+  c.set("userId", ownerId);
+  const objectId = event.object_id;
+  let res;
+
+  if (event.aspect_type == "create") {
+    res = addActivityToDbById(c, db, env, table, objectId);
+    console.log(`${objectType} created.`);
+  } else if (event.aspect_type == "update") {
+    const activities = await db.execute("SELECT id FROM activities;");
+    if (activities.rows.every((row) => row.id !== objectId)) {
+      res = addActivityToDbById(c, db, env, table, objectId);
+    } else {
+      const updateMap: { [key: string]: string } = {
+        title: "name",
+      };
+
+      const updateString = Object.entries(event.updates)
+        .map(([key, value]) => `'${updateMap[key]}'='${value}'`)
+        .join(", ");
+
+      res = await db.execute(`
+      UPDATE ${table}
+      SET ${updateString}
+      WHERE id = ${objectId};
+      `);
+    }
+    console.log(`${objectType} updated!`);
+  } else if (event.aspect_type == "delete") {
+    res = await db.execute(`DELETE FROM ${table} WHERE id = ${objectId};`);
+    console.log(`${objectType} deleted.`);
+  }
+  return res;
+}
