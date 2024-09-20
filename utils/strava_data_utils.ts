@@ -67,5 +67,8 @@ export async function getLoggedInAthleteActivityById(
     console.log(response);
     throw new Error(`Retrieval of activity failed: id ${id}`);
   }
-  return await response.json();
+
+  const resJson: Activity = await response.json();
+  resJson.athlete_id = resJson.athlete.id;
+  return resJson;
 }

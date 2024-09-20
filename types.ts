@@ -2,12 +2,50 @@ export type Config = {
   [key: string]: string;
 };
 
+export interface Split {
+  distance: number;
+  elapsed_time: number;
+  elevation_difference: number;
+  moving_time: number;
+  split: number;
+  average_speed: number;
+  average_grade_adjusted_speed: number;
+  average_heartrate: number;
+  pace_zone: number;
+}
+
+export interface Lap {
+  id: number;
+  resource_state: number;
+  name: string;
+  activity: { id: number; visibility: string; resource_state: number };
+  athlete: { id: number; resource_state: number };
+  elapsed_time: number;
+  moving_time: number;
+  start_date: string;
+  start_date_local: string;
+  distance: number;
+  average_speed: number;
+  max_speed: number;
+  lap_index: number;
+  split: number;
+  start_index: number;
+  end_index: number;
+  total_elevation_gain: number;
+  average_cadence: number;
+  device_watts: boolean;
+  average_heartrate: number;
+  max_heartrate: number;
+  pace_zone: number;
+}
+
 export interface Activity {
   resource_state: number;
   athlete: {
     id: number;
     resource_state: number;
   };
+  athlete_id: number;
   name: string;
   distance: number;
   moving_time: number;
@@ -33,6 +71,7 @@ export interface Activity {
     id: string;
     summary_polyline: string;
     resource_state: number;
+    polyline: string;
   };
   trainer: boolean;
   commute: boolean;
@@ -44,8 +83,11 @@ export interface Activity {
   start_latlng: [number, number];
   end_latlng: [number, number];
   average_speed: number;
-  max_speed: number;
+  average_cadence?: number;
+  max_speed?: number;
   has_heartrate: boolean;
+  average_heartrate?: number;
+  max_heartrate?: number;
   heartrate_opt_out: boolean;
   display_hide_heartrate_option: boolean;
   elev_high: number;
@@ -58,6 +100,22 @@ export interface Activity {
   total_photo_count: number;
   has_kudoed: boolean;
   description?: string;
+  calories?: number;
+  perceived_exertion?: number;
+  prefer_perceived_exertion: boolean;
+  segment_efforts: any[];
+  splits_metric: Split[];
+  splits_standard: Split[];
+  laps: Lap[];
+  best_efforts: any[];
+  gear: Shoe | any;
+  photos: { primary: null | number; count: number };
+  stats_visibility: { type: string; visibility: string }[];
+  hide_from_home: boolean;
+  device_name: string;
+  embed_token: string;
+  similar_activities: any;
+  available_zones: any[];
 }
 
 export interface Club {
@@ -166,8 +224,8 @@ export interface WebHookRequest {
   updates: {
     title?: string;
     type?: string;
-    private?: boolean;
-    authorized?: boolean;
+    private?: "true" | "false";
+    authorized?: "true" | "false";
   };
 }
 

@@ -1,10 +1,12 @@
 // /** @jsxImportSource https://esm.sh/hono@v4.1.4/jsx */
 import { createClient } from "npm:@libsql/client@0.6.0/node";
+import { Client } from "npm:@libsql/core/api";
 import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import {
   addCharts,
   createAuthTable,
   createUserDataTables,
+  eventHandler,
   getAccessUrl,
   getEnvVar,
   getHTMLDoc,
@@ -17,6 +19,7 @@ import {
 } from "./utils/index.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
+import { WebHookRequest } from "./types.ts";
 
 const envFile = await load();
 for (const [k, v] of Object.entries(envFile)) {
@@ -33,12 +36,12 @@ const AUTH_TURSO_URL = Deno.env.get("AUTH_TURSO_URL");
 
 const BASE_URL = Deno.env.get("BASE_URL");
 
-const env = createClient({
+const env: Client = createClient({
   url: AUTH_TURSO_URL || "",
   authToken: AUTH_TURSO_AUTH_TOKEN,
 });
 
-const db = createClient({
+const db: Client = createClient({
   url: TURSO_URL || "",
   authToken: TURSO_AUTH_TOKEN,
 });
@@ -193,10 +196,10 @@ app.get("/subscription/listen", (c: Context) => {
 });
 
 app.post("/subscription/listen", async (c: Context) => {
-  const res = await c.req.json();
-  console.log("WEBHOOK", res);
-  // TODO: CRUD CONTROLS ON TENANT DB
-  return;
+  const event: WebHookRequest = await c.req.json();
+
+  const res = await eventHandler(c, db, env, event);
+  return c.json({ Result: res ?? "Error" });
 });
 
 app.post("/db/setup", async (c: Context) => {
