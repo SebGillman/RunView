@@ -19,6 +19,7 @@ import {
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
 
+// load from local env if available
 const envFile = await load();
 for (const [k, v] of Object.entries(envFile)) {
   Deno.env.set(k, v);
