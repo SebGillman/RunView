@@ -14,9 +14,9 @@ import {
 } from "./index.ts";
 import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 
-export async function getHTMLDoc(): Promise<HTMLDocument> {
+export async function getHTMLDoc(path: string): Promise<HTMLDocument> {
   const parser = new DOMParser();
-  const htmlContent = await Deno.readTextFile("./index.html");
+  const htmlContent = await Deno.readTextFile(`./${path}`);
   const doc = parser.parseFromString(htmlContent, "text/html");
 
   if (doc === null) throw new Error("HTML Template not found.");

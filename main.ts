@@ -1,6 +1,7 @@
 // /** @jsxImportSource https://esm.sh/hono@v4.1.4/jsx */
 import { createClient } from "npm:@libsql/client@0.6.0/node";
 import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { serveStatic } from "https://deno.land/x/hono@v4.1.4/middleware/serve-static/index.ts";
 import {
   addCharts,
   createAuthTable,
@@ -47,6 +48,15 @@ await createAuthTable(env);
 
 const app = new Hono();
 
+//serve static files
+app.use(
+  "/assets/*",
+  serveStatic({
+    getContent: async (path) => await Deno.readFile(path),
+    root: "./",
+  })
+);
+
 app.get("/auth/login", async (c: Context) => {
   console.log("LOGIN START");
   const accessUrl = await getAccessUrl();
@@ -77,7 +87,7 @@ app.get(
     if (!userId) return c.redirect("/auth/login");
     try {
       await createUserDataTables(c, db, env);
-      const doc = await getHTMLDoc();
+      const doc = await getHTMLDoc("index.html");
       doc.body = await addCharts(c, doc.body, env);
       const docHtmlText = doc.documentElement?.outerHTML;
 
@@ -91,8 +101,11 @@ app.get(
   }
 );
 
-app.get("/", (c: Context) => {
-  return c.redirect("/home");
+app.get("/", async (c: Context) => {
+  const doc = await getHTMLDoc("welcome.html");
+  const docHtmlText = doc.documentElement?.outerHTML;
+  if (!docHtmlText) throw new Error("Failed to obtain document html");
+  return c.html(docHtmlText);
 });
 
 app.get("/test", async (c: Context) => {
