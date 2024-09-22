@@ -202,7 +202,7 @@ export async function createAuthTable(env: Client) {
   return;
 }
 
-async function addActivityToDbById(
+async function addUserOrActivityToDbById(
   c: Context,
   db: Client,
   env: Client,
@@ -259,12 +259,12 @@ export async function eventHandler(
   let res;
 
   if (event.aspect_type == "create") {
-    res = addActivityToDbById(c, db, env, table, objectId);
+    res = addUserOrActivityToDbById(c, db, env, table, objectId);
     console.log(`${objectType} created.`);
   } else if (event.aspect_type == "update") {
     const activities = await db.execute("SELECT id FROM activities;");
     if (activities.rows.every((row) => row.id !== objectId)) {
-      res = addActivityToDbById(c, db, env, table, objectId);
+      res = addUserOrActivityToDbById(c, db, env, table, objectId);
     } else {
       const updateMap: { [key: string]: string } = {
         title: "name",
