@@ -262,8 +262,8 @@ export async function eventHandler(
     res = addUserOrActivityToDbById(c, db, env, table, objectId);
     console.log(`${objectType} created.`);
   } else if (event.aspect_type == "update") {
-    const activities = await db.execute("SELECT id FROM activities;");
-    if (activities.rows.every((row) => row.id !== objectId)) {
+    const currentObjectIds = await db.execute(`SELECT id FROM ${table};`);
+    if (currentObjectIds.rows.every((row) => row.id !== objectId)) {
       res = addUserOrActivityToDbById(c, db, env, table, objectId);
     } else {
       const updateMap: { [key: string]: string } = {
