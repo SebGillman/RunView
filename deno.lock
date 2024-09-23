@@ -2,11 +2,18 @@
   "version": "3",
   "packages": {
     "specifiers": {
+      "npm:@hono/node-server": "npm:@hono/node-server@1.13.0_hono@4.5.4",
       "npm:@libsql/client@0.6.0": "npm:@libsql/client@0.6.0",
       "npm:@libsql/core": "npm:@libsql/core@0.6.0",
       "npm:libsql": "npm:libsql@0.3.10"
     },
     "npm": {
+      "@hono/node-server@1.13.0_hono@4.5.4": {
+        "integrity": "sha512-kz323qIQkNQElEGroo/E9MKPDuIR5pkuk/XEWd50K+cSEKdmdiYx0PKWUdaNY2ecJYngtF+njDMsMKplL6zfEg==",
+        "dependencies": {
+          "hono": "hono@4.5.4"
+        }
+      },
       "@libsql/client@0.6.0": {
         "integrity": "sha512-qhQzTG/y2IEVbL3+9PULDvlQFWJ/RnjFXECr/Nc3nRngGiiMysDaOV5VUzYk7DulUX98EA4wi+z3FspKrUplUA==",
         "dependencies": {
@@ -104,6 +111,10 @@
         "dependencies": {
           "fetch-blob": "fetch-blob@3.2.0"
         }
+      },
+      "hono@4.5.4": {
+        "integrity": "sha512-k2IguJfRgNCpDbAfpxk+o+fZBLFHl4+eIZUpjc1ItZWHeZ37SmT3efA1UpkIaC0hSf1NJg0E79/wWn6g9LQ4Cw==",
+        "dependencies": {}
       },
       "js-base64@3.7.7": {
         "integrity": "sha512-7rCnleh0z2CkXhH67J8K1Ytz0b2Y+yxTPL+/KOJoa20hfnVQ/3/T6W/KflYI4bRHRagNeXeU2bkNGI3v1oS/lw==",
