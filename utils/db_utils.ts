@@ -117,6 +117,7 @@ export async function createUserDataTables(
       average_speed REAL,
       average_cadence REAL,
       max_speed REAL,
+      average_watts REAL,
       has_heartrate BOOLEAN,
       max_heartrate REAL,
       average_heartrate REAL,
