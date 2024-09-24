@@ -154,7 +154,8 @@ export async function createUserDataTables(
       embed_token TEXT,
       similar_activities BLOB,
       available_zones BLOB,
-      athlete BLOB
+      athlete BLOB,
+      private_note TEXT
     );`
     );
     console.log("Created activity data table.");

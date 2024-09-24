@@ -122,6 +122,7 @@ export interface Activity {
   embed_token: string;
   similar_activities: unknown;
   available_zones: unknown[];
+  private_note?: string;
 }
 
 export interface Club {
