@@ -224,7 +224,10 @@ async function addUserOrActivityToDbById(
       getLoggedInAthleteActivityById(c, env, objectId),
   };
 
+  await createUserDataTables(c, db, env);
+
   const object = await funcMap[table](c, env, objectId);
+  console.log(`NEW ${table} ENTRY:`, object);
 
   const columns = Object.keys(object)
     .map((column) => JSON.stringify(column))
