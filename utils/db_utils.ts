@@ -259,8 +259,10 @@ export async function eventHandler(
   if (!table) throw new Error("Invalid webhook payload");
 
   const ownerId = event.owner_id;
-  c.set("userId", ownerId);
   const objectId = event.object_id;
+
+  c.set("userId", table === "users" ? objectId : ownerId);
+
   let res;
 
   if (event.aspect_type == "create") {
