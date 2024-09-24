@@ -234,7 +234,7 @@ async function addUserOrActivityToDbById(
     .map((column) => JSON.stringify(column))
     .join(", ");
   const values = Object.values(object)
-    .map((value) => `'${JSON.stringify(value)}'`)
+    .map((value) => `'${JSON.stringify(value).replace(/'/g, "''")}'`)
     .join(", ");
 
   const res = await db.execute(`
@@ -281,7 +281,10 @@ export async function eventHandler(
       };
 
       const updateString = Object.entries(event.updates)
-        .map(([key, value]) => `'${updateMap[key]}'='${value}'`)
+        .map(
+          ([key, value]) =>
+            `'${updateMap[key]}'='${JSON.stringify(value).replace(/'/g, "''")}'`
+        )
         .join(", ");
 
       res = await db.execute(`
