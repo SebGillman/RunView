@@ -88,6 +88,8 @@ export interface Activity {
   has_heartrate: boolean;
   average_heartrate?: number;
   max_heartrate?: number;
+  average_watts?: number;
+  max_watts?: number;
   heartrate_opt_out: boolean;
   display_hide_heartrate_option: boolean;
   elev_high: number;
@@ -101,21 +103,21 @@ export interface Activity {
   has_kudoed: boolean;
   description?: string;
   calories?: number;
-  perceived_exertion?: number;
+  perceived_exertion?: number | null;
   prefer_perceived_exertion: boolean;
-  segment_efforts: any[];
+  segment_efforts: unknown[];
   splits_metric: Split[];
   splits_standard: Split[];
   laps: Lap[];
-  best_efforts: any[];
-  gear: Shoe | any;
+  best_efforts: unknown[];
+  gear: Shoe | unknown;
   photos: { primary: null | number; count: number };
   stats_visibility: { type: string; visibility: string }[];
   hide_from_home: boolean;
   device_name: string;
   embed_token: string;
-  similar_activities: any;
-  available_zones: any[];
+  similar_activities: unknown;
+  available_zones: unknown[];
 }
 
 export interface Club {
@@ -186,8 +188,8 @@ export interface Athlete {
   measurement_preference: string;
   clubs: Club[];
   postable_clubs_count: number;
-  ftp?: any;
-  bikes: any[];
+  ftp?: unknown;
+  bikes: unknown[];
   shoes: Shoe[];
   is_winback_via_upload: boolean;
   is_winback_via_view: boolean;
