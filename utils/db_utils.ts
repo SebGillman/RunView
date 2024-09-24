@@ -228,10 +228,7 @@ async function addUserOrActivityToDbById(
       getLoggedInAthleteActivityById(c, env, objectId),
   };
 
-  await createUserDataTables(c, db, env);
-
   const object = await funcMap[table](c, env, objectId);
-  console.log(`NEW ${table} ENTRY:`, object);
 
   const columns = Object.keys(object)
     .map((column) => JSON.stringify(column))
@@ -266,16 +263,18 @@ export async function eventHandler(
   const objectId = event.object_id;
 
   c.set("userId", table === "users" ? objectId : ownerId);
+  await createUserDataTables(c, db, env);
 
   let res;
 
   if (event.aspect_type == "create") {
-    res = addUserOrActivityToDbById(c, db, env, table, objectId);
+    res = await addUserOrActivityToDbById(c, db, env, table, objectId);
     console.log(`${objectType} created.`);
   } else if (event.aspect_type == "update") {
     const currentObjectIds = await db.execute(`SELECT id FROM ${table};`);
+
     if (currentObjectIds.rows.every((row) => row.id !== objectId)) {
-      res = addUserOrActivityToDbById(c, db, env, table, objectId);
+      res = await addUserOrActivityToDbById(c, db, env, table, objectId);
     } else {
       const updateMap: { [key: string]: string } = {
         title: "name",
