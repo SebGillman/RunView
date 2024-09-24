@@ -27,6 +27,7 @@ export interface Lap {
   distance: number;
   average_speed: number;
   max_speed: number;
+  average_watts: number;
   lap_index: number;
   split: number;
   start_index: number;
@@ -89,6 +90,7 @@ export interface Activity {
   average_heartrate?: number;
   max_heartrate?: number;
   average_watts?: number;
+  weighted_average_watts?: number;
   max_watts?: number;
   heartrate_opt_out: boolean;
   display_hide_heartrate_option: boolean;
@@ -103,6 +105,7 @@ export interface Activity {
   has_kudoed: boolean;
   description?: string;
   calories?: number;
+  kilojoules?: number;
   perceived_exertion?: number | null;
   prefer_perceived_exertion: boolean;
   segment_efforts: unknown[];
@@ -115,6 +118,7 @@ export interface Activity {
   stats_visibility: { type: string; visibility: string }[];
   hide_from_home: boolean;
   device_name: string;
+  device_watts?: boolean;
   embed_token: string;
   similar_activities: unknown;
   available_zones: unknown[];
