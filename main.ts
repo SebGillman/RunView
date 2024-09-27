@@ -216,9 +216,4 @@ app.post("/subscription/listen", async (c: Context) => {
   return c.json({ Result: res ?? "Error" });
 });
 
-app.post("/db/setup", async (c: Context) => {
-  await createAuthTable(env);
-  await createUserDataTables(c, db, env);
-});
-
 Deno.serve({ hostname: "0.0.0.0", port: 8000 }, app.fetch);
