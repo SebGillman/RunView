@@ -20,8 +20,8 @@ export async function createUserDataTables(
     await db.execute(
       `CREATE TABLE "users" (
       id INTEGER PRIMARY KEY NOT NULL,
-      username TEXT NOT NULL,
-      resource_state TEXT NOT NULL,
+      username TEXT,
+      resource_state TEXT,
       firstname REAL,
       lastname REAL,
       bio TEXT,
@@ -59,14 +59,19 @@ export async function createUserDataTables(
     console.log("Users table created!");
   }
 
-  const user: Athlete = await getLoggedInAthlete(c, env);
-  if (!user.id) throw new Error("Failed to retrieve userId.");
+  const userId = c.get("userId");
+  if (!userId) throw new Error("Failed to retrieve userId.");
 
-  const users = await db.execute("SELECT id FROM users");
+  const authenticatedUsers = await env.execute(
+    `SELECT id FROM "users_strava_auth"`
+  );
+  const users = await db.execute("SELECT id,username FROM users");
 
-  if (!users.rows.some((x) => x.id === user.id)) {
-    console.log("User missing from users table.");
+  // if tables being created by webhook, user will be missing from authTable, therefore just store id in a placeholder row.
+  if (!authenticatedUsers.rows.some((x) => x.id === userId)) {
+    console.log("User missing from auth and user tables.");
 
+    const user: Partial<Athlete> = { id: userId };
     const columns = Object.keys(user)
       .map((value) => JSON.stringify(value))
       .join(", ");
@@ -75,6 +80,22 @@ export async function createUserDataTables(
       .join(", ");
 
     await db.execute(`INSERT INTO users (${columns}) VALUES (${values});`);
+    console.log("Temporary user record created");
+  } else if (!users.rows.some((x) => x.id === userId && x.username !== "")) {
+    console.log("User missing from users table.");
+
+    const user: Athlete = await getLoggedInAthlete(c, env);
+
+    const columns = Object.keys(user)
+      .map((value) => JSON.stringify(value))
+      .join(", ");
+    const values = Object.values(user)
+      .map((value) => `'${JSON.stringify(value)}'`)
+      .join(", ");
+
+    await db.execute(
+      `INSERT OR REPLACE INTO users (${columns}) VALUES (${values});`
+    );
     console.log("User record created");
   }
 
