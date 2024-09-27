@@ -92,7 +92,8 @@ export const getTokenExchange = (env: Client) => {
 
 export const refreshTokensIfExpired = (env: Client) => {
   return async (c: Context, next: () => Promise<void>) => {
-    if (!c.get("userId")) return await next();
+    const userId = c.get("userId");
+    if (!userId) return next();
     const expiryTime = Number(
       await getEnvVar(c, env, "ACCESS_TOKEN_EXPIRES_AT")
     );
@@ -105,7 +106,8 @@ export const refreshTokensIfExpired = (env: Client) => {
     if (!CLIENT_ID) throw new Error("Missing CLIENT_ID");
     if (!CLIENT_SECRET) throw new Error("Missing CLIENT_SECRET");
 
-    if (expiryTime > currentTime + 3600) return await next();
+    // Assuming the token should be refreshed if it's about to expire in the next hour
+    if (expiryTime > currentTime + 3600) return next();
 
     const refreshResponse = await fetch(
       "https://www.strava.com/api/v3/oauth/token",
@@ -128,7 +130,6 @@ export const refreshTokensIfExpired = (env: Client) => {
     REFRESH_TOKEN = refreshData.refresh_token;
     const ACCESS_TOKEN = refreshData.access_token;
 
-    const userId = c.get("userId");
     env.execute(`
         UPDATE "users_strava_auth"
         SET ACCESS_TOKEN = '${ACCESS_TOKEN}',
@@ -137,7 +138,7 @@ export const refreshTokensIfExpired = (env: Client) => {
         WHERE id = '${userId}';
         `);
 
-    return await next();
+    return next();
   };
 };
 
