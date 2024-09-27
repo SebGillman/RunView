@@ -81,7 +81,7 @@ export async function createUserDataTables(
 
     await db.execute(`INSERT INTO users (${columns}) VALUES (${values});`);
     console.log("Temporary user record created");
-  } else if (!users.rows.some((x) => x.id === userId && x.username !== "")) {
+  } else if (!users.rows.some((x) => x.id === userId && x.username !== null)) {
     console.log("User missing from users table.");
 
     const user: Athlete = await getLoggedInAthlete(c, env);
