@@ -44,7 +44,7 @@ jobs:
           push: true
           tags: |
             ${{secrets.GCP_REGION}}-docker.pkg.dev/${{secrets.GAR_PATH}}:${{ steps.get-tag.outputs.short_ref }}
-            e${{secrets.GCP_REGION}}-docker.pkg.dev/${{secrets.GAR_PATH}}:latest
+            ${{secrets.GCP_REGION}}-docker.pkg.dev/${{secrets.GAR_PATH}}:latest
 
       - name: Deploy to Cloud Run
         run: |
