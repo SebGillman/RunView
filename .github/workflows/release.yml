@@ -43,5 +43,13 @@ jobs:
         with:
           push: true
           tags: |
-            europe-west2-docker.pkg.dev/${{secrets.GAR_PATH}}:${{ steps.get-tag.outputs.short_ref }}
-            europe-west2-docker.pkg.dev/${{secrets.GAR_PATH}}:latest
+            ${{secrets.GCP_REGION}}-docker.pkg.dev/${{secrets.GAR_PATH}}:${{ steps.get-tag.outputs.short_ref }}
+            e${{secrets.GCP_REGION}}-docker.pkg.dev/${{secrets.GAR_PATH}}:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE }} \
+            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{secrets.GAR_PATH}}:${{ github.sha }} \
+            --platform=managed \
+            --region=${{ secrets.GCP_REGION }} \
+            --allow-unauthenticated
