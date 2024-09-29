@@ -51,5 +51,5 @@ jobs:
           gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE }} \
             --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{secrets.GAR_PATH}}:${{ github.sha }} \
             --platform=managed \
-            --region=${{ secrets.GCP_REGION }} \
+            --region=${{ secrets.CLOUD_RUN_REGION }} \
             --allow-unauthenticated
