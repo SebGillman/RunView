@@ -49,7 +49,7 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ secrets.CLOUD_RUN_SERVICE }} \
-            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{secrets.GAR_PATH}}:${{ github.sha }} \
+            --image=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{secrets.GAR_PATH}}:${{ steps.get-tag.outputs.short_ref  }} \
             --platform=managed \
             --region=${{ secrets.CLOUD_RUN_REGION }} \
             --allow-unauthenticated
