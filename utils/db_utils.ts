@@ -259,7 +259,7 @@ async function addUserOrActivityToDbById(
     .join(", ");
 
   const res = await db.execute(`
-      INSERT INTO ${table} (${columns})
+      INSERT OR REPLACE INTO ${table} (${columns})
       VALUES (${values})
       `);
   return res;
