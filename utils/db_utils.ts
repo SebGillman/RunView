@@ -59,7 +59,7 @@ export async function createUserDataTables(
     console.log("Users table created!");
   }
 
-  const userId = c.get("userId");
+  const userId = Number(c.get("userId"));
   if (!userId) throw new Error("Failed to retrieve userId.");
 
   const authenticatedUsers = await env.execute(
