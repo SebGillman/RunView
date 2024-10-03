@@ -59,7 +59,7 @@ export async function createUserDataTables(
     console.log("Users table created!");
   }
 
-  const userId = Number(c.get("userId"));
+  const userId = c.get("userId");
   if (!userId) throw new Error("Failed to retrieve userId.");
 
   const authenticatedUsers = await env.execute(
@@ -280,10 +280,9 @@ export async function eventHandler(
   }
   if (!table) throw new Error("Invalid webhook payload");
 
-  const ownerId = event.owner_id;
+  // const ownerId = event.owner_id;
   const objectId = event.object_id;
 
-  c.set("userId", table === "users" ? objectId : ownerId);
   await createUserDataTables(c, db, env);
 
   let res;

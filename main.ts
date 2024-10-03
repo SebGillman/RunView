@@ -211,6 +211,12 @@ app.get("/subscription/listen", (c: Context) => {
 
 app.post("/subscription/listen", async (c: Context) => {
   const event: WebHookRequest = await c.req.json();
+  const ownerId = event.owner_id;
+  const objectId = event.object_id;
+
+  c.set("userId", event.object_type === "athlete" ? objectId : ownerId);
+
+  await refreshTokensIfExpired(env)(c, async () => {});
 
   const res = await eventHandler(c, db, env, event);
   return c.json({ Result: res ?? "Error" });
