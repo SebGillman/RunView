@@ -15,6 +15,7 @@ import {
   getSessionFromCookie,
   getSessionFromHeader,
   getTokenExchange,
+  passActivityToTileTracker,
   refreshTokensIfExpired,
   setSessionCookie,
 } from "./utils/index.ts";
@@ -219,6 +220,10 @@ app.post("/subscription/listen", async (c: Context) => {
   await refreshTokensIfExpired(env)(c, async () => {});
 
   const res = await eventHandler(c, db, env, event);
+
+  if (event.aspect_type === "create" && event.object_type === "activity") {
+    passActivityToTileTracker(c, env, event.object_id, event.event_time);
+  }
   return c.json({ Result: res ?? "Error" });
 });
 

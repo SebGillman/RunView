@@ -72,3 +72,27 @@ export async function getLoggedInAthleteActivityById(
   resJson.athlete_id = resJson.athlete.id;
   return resJson;
 }
+
+export async function getActivityStream(
+  c: Context,
+  env: Client,
+  activityId: number
+): Promise<{ latlng: { data: Array<[number, number]> } }> {
+  const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
+
+  const res = await fetch(
+    `https://www.strava.com/api/v3/activities/${activityId}/streams?keys=latlng&key_by_type=true`,
+    {
+      method: "GET",
+      headers: new Headers({
+        Authorization: `Bearer ${ACCESS_TOKEN}`,
+        Accept: "application/json",
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("ERROR: Failed to get activity stream!");
+  }
+  return await res.json();
+}

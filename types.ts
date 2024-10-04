@@ -239,3 +239,10 @@ export interface WebHookRequest {
 export interface TableName {
   name: string;
 }
+
+export interface TileTrackerCoordPayload {
+  userId: number;
+  activityId: number;
+  coords: Array<[number, number]>;
+  createdAt: number;
+}
