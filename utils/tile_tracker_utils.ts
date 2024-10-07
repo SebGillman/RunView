@@ -50,3 +50,21 @@ export async function passActivityToTileTracker(
 
   console.log("Activity route posted to TileTracker.");
 }
+
+export async function getLeaderboard(
+  c: Context,
+  limit?: number,
+  offset?: number
+) {
+  const userId = c.get("userId");
+  const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
+
+  const url = new URL(tileTrackerUrl + "/leaderboard");
+  if (limit !== undefined) url.searchParams.append("limit", `${limit}`);
+  if (offset !== undefined) url.searchParams.append("offset", `${offset}`);
+  if (userId !== undefined) url.searchParams.append("userId", `${userId}`);
+
+  return await fetch(url.toString(), {
+    method: "GET",
+  });
+}

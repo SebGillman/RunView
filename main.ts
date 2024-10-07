@@ -11,6 +11,7 @@ import {
   getAccessUrl,
   getEnvVar,
   getHTMLDoc,
+  getLeaderboard,
   getLoggedInAthleteActivities,
   getSessionFromCookie,
   getSessionFromHeader,
@@ -225,6 +226,10 @@ app.post("/subscription/listen", async (c: Context) => {
     passActivityToTileTracker(c, env, event.object_id, event.event_time);
   }
   return c.json({ Result: res ?? "Error" });
+});
+
+app.get("/leaderboard", refreshTokensIfExpired(env), async (c: Context) => {
+  return await getLeaderboard(c);
 });
 
 Deno.serve({ hostname: "0.0.0.0", port: 8000 }, app.fetch);
