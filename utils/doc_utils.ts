@@ -28,66 +28,81 @@ export async function addCharts(c: Context, body: Element, env: Client) {
   let bodyWithCharts = body;
   const client = new DB("./db/charts.db");
 
-  const funcs: {
-    [key: string]: (
-      c: Context,
-      env: Client
-    ) => Promise<{ [key: string]: number }>;
-  } = {
+  // Collect all chart elements
+  const chartElements = Array.from(body.querySelectorAll("canvas"));
+
+  // Get all chart IDs from the body at once for querying the database
+  const chartIds = chartElements
+    .map((el) => (el as Element).getAttribute("id"))
+    .filter(Boolean);
+
+  if (chartIds.length === 0) return bodyWithCharts;
+
+  // Use parameterized query to retrieve data for all charts at once
+  const chartDataRows = client.query(
+    `SELECT * FROM charts WHERE id IN (${chartIds.map(() => "?").join(",")})`,
+    chartIds
+  );
+
+  if (!chartDataRows.length) throw new Error("No data exists for the charts!");
+
+  // Prepare functions and chart types once
+  const funcs: Record<
+    string,
+    (c: Context, env: Client) => Promise<{ [key: string]: number }>
+  > = {
     getWeeklyDistance: getWeeklyRunDistance,
     getCurrentCumulativeYearDistance: getCurrentCumulativeYearDistance,
   };
 
-  const chartTypes: {
-    [key: string]: (
-      body: Element,
-      chartName: string,
-      data: ChartData
-    ) => Element;
-  } = {
+  const chartTypes: Record<
+    string,
+    (body: Element, chartName: string, data: ChartData) => Element
+  > = {
     line: lineChart,
     bar: barChart,
   };
 
-  for (const node of body.querySelectorAll("canvas")) {
-    if (!(node instanceof Element)) continue;
+  // Process the charts in parallel
+  const updatedCharts = await Promise.all(
+    chartElements.map(async (element) => {
+      if (!(element instanceof Element)) return bodyWithCharts;
 
-    const element = node as Element;
-    const elementId = element.getAttribute("id");
+      const elementId = (element as Element).getAttribute("id");
+      const chartRow = chartDataRows.find(([id]) => id === elementId);
 
-    const query = client.query(
-      `SELECT * FROM charts WHERE id = '${elementId}'`
-    );
+      if (!chartRow) return bodyWithCharts; // No chart data for this element
 
-    if (!query.length) throw new Error("Data does not exist for this chart!");
+      const [
+        _chartId,
+        chartType,
+        chartTitle,
+        chartXlabel,
+        chartYlabel,
+        chartFunc,
+      ] = chartRow as [string, string, string, string, string, string];
 
-    const [
-      _chartId,
-      chartType,
-      chartTitle,
-      chartXlabel,
-      chartYlabel,
-      chartFunc,
-    ] = query[0] as [string, string, string, string, string, string];
+      // Skip if invalid chartType
+      if (!(chartType in chartTypes)) return bodyWithCharts;
 
-    if (!(elementId && Object.keys(chartTypes).indexOf(chartType) !== -1))
-      continue;
+      // Fetch chart data in parallel
+      const data = await funcs[chartFunc](c, env);
 
-    const data = await funcs[chartFunc](c, env);
+      const outputData: ChartData = {
+        title: chartTitle,
+        xlabel: chartXlabel,
+        ylabel: chartYlabel,
+        data_labels: Object.keys(data),
+        data_values: Object.values(data),
+      };
 
-    const outputData: ChartData = {
-      title: chartTitle,
-      xlabel: chartXlabel,
-      ylabel: chartYlabel,
-      data_labels: Object.keys(data),
-      data_values: Object.values(data),
-    };
+      // Update bodyWithCharts with the newly rendered chart
+      return chartTypes[chartType](bodyWithCharts, elementId!, outputData);
+    })
+  );
 
-    bodyWithCharts = chartTypes[chartType](
-      bodyWithCharts,
-      elementId,
-      outputData
-    );
-  }
+  // Update the body with all charts
+  bodyWithCharts = updatedCharts[updatedCharts.length - 1] || bodyWithCharts;
+
   return bodyWithCharts;
 }
