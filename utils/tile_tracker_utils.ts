@@ -70,20 +70,22 @@ export async function getLeaderboard(
 }
 
 export async function getTilesWithinBounds(
-  topLeftX: number,
-  topLeftY: number,
-  bottomRightX: number,
-  bottomRightY: number
-): Promise<void> {
+  bottomLeftX: string,
+  bottomLeftY: string,
+  topRightX: string,
+  topRightY: string
+): Promise<Response> {
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 
   const url = new URL(tileTrackerUrl + "/tiles");
-  url.searchParams.append("x1", `${topLeftX}`);
-  url.searchParams.append("y1", `${topLeftY}`);
-  url.searchParams.append("x2", `${bottomRightX}`);
-  url.searchParams.append("y1", `${bottomRightY}`);
+  url.searchParams.append("x1", `${bottomLeftX}`);
+  url.searchParams.append("y1", `${bottomLeftY}`);
+  url.searchParams.append("x2", `${topRightX}`);
+  url.searchParams.append("y2", `${topRightY}`);
 
-  const res = await fetch(url, { method: "GET" });
+  const res = await fetch(url.toString(), { method: "GET" });
+
   if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
-  return await res.json();
+  const resJson = await res.json();
+  return resJson;
 }

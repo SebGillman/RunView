@@ -6,20 +6,11 @@ import { serveStatic } from "https://deno.land/x/hono@v4.1.4/middleware/serve-st
 import {
   addCharts,
   createUserDataTables,
-  eventHandler,
-  getEnvVar,
   getHTMLDoc,
-  getLeaderboard,
-  getLoggedInAthleteActivities,
   getSessionFromCookie,
-  getSessionFromHeader,
-  getTilesWithinBounds,
-  passActivityToTileTracker,
   refreshTokensIfExpired,
 } from "./utils/index.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
-import { getTotalWeightTrainingVolume } from "./utils/data_processing_utils.ts";
-import { WebHookRequest } from "./types.ts";
 
 // load from local env if available
 const envFile = await load();
@@ -100,25 +91,10 @@ app.get("/", async (c: Context) => {
   return c.html(docHtmlText);
 });
 
-app.get("/leaderboard", refreshTokensIfExpired, async (c: Context) => {
-  return await getLeaderboard(c);
-});
-
-app.get("/tiles-in-range", async (c: Context) => {
-  const { topLeftX, topLeftY, bottomRightX, bottomRightY } =
-    c.req.param() as unknown as {
-      [key: string]: number;
-    };
-  return await getTilesWithinBounds(
-    topLeftX,
-    topLeftY,
-    bottomRightX,
-    bottomRightY
-  );
-});
-
 import AuthApp from "./app/auth.ts";
 import SubscriptionsApp from "./app/subscription.ts";
+import TilesApp from "./app/tiles.ts";
+app.route("/tiles", TilesApp);
 app.route("/auth", AuthApp);
 app.route("/subscription", SubscriptionsApp);
 
