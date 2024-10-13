@@ -40,7 +40,7 @@ export async function passActivityToTileTracker(
   });
 
   if (!res.ok) {
-    console.error(
+    console.log(
       "ERROR [passActivityToTileTracker]",
       res.status,
       res.statusText
@@ -67,4 +67,23 @@ export async function getLeaderboard(
   return await fetch(url.toString(), {
     method: "GET",
   });
+}
+
+export async function getTilesWithinBounds(
+  topLeftX: number,
+  topLeftY: number,
+  bottomRightX: number,
+  bottomRightY: number
+): Promise<void> {
+  const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
+
+  const url = new URL(tileTrackerUrl + "/tiles");
+  url.searchParams.append("x1", `${topLeftX}`);
+  url.searchParams.append("y1", `${topLeftY}`);
+  url.searchParams.append("x2", `${bottomRightX}`);
+  url.searchParams.append("y1", `${bottomRightY}`);
+
+  const res = await fetch(url, { method: "GET" });
+  if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+  return await res.json();
 }

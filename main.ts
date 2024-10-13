@@ -13,6 +13,7 @@ import {
   getLoggedInAthleteActivities,
   getSessionFromCookie,
   getSessionFromHeader,
+  getTilesWithinBounds,
   passActivityToTileTracker,
   refreshTokensIfExpired,
 } from "./utils/index.ts";
@@ -101,6 +102,19 @@ app.get("/", async (c: Context) => {
 
 app.get("/leaderboard", refreshTokensIfExpired, async (c: Context) => {
   return await getLeaderboard(c);
+});
+
+app.get("/tiles-in-range", async (c: Context) => {
+  const { topLeftX, topLeftY, bottomRightX, bottomRightY } =
+    c.req.param() as unknown as {
+      [key: string]: number;
+    };
+  return await getTilesWithinBounds(
+    topLeftX,
+    topLeftY,
+    bottomRightX,
+    bottomRightY
+  );
 });
 
 import AuthApp from "./app/auth.ts";
