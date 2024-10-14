@@ -99,3 +99,4 @@ app.route("/auth", AuthApp);
 app.route("/subscription", SubscriptionsApp);
 
 Deno.serve({ hostname: "0.0.0.0", port: 8000 }, app.fetch);
+export default app;

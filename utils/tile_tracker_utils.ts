@@ -27,8 +27,7 @@ export async function passActivityToTileTracker(
     coords: activityStream.latlng.data,
     createdAt,
   };
-  const body: FormData = new FormData();
-  Object.entries(payload).forEach(([k, v]) => body.append(k, v));
+
 
   const res = await fetch(tileTrackerUrl + "/process-activity", {
     method: "POST",
@@ -51,22 +50,26 @@ export async function passActivityToTileTracker(
   console.log("Activity route posted to TileTracker.");
 }
 
-export async function getLeaderboard(
-  c: Context,
-  limit?: number,
-  offset?: number
-) {
-  const userId = c.get("userId");
+export async function getLeaderboard(options: {
+  userId?: number;
+  limit?: number;
+  offset?: number;
+}) {
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 
   const url = new URL(tileTrackerUrl + "/leaderboard");
-  if (limit !== undefined) url.searchParams.append("limit", `${limit}`);
-  if (offset !== undefined) url.searchParams.append("offset", `${offset}`);
-  if (userId !== undefined) url.searchParams.append("userId", `${userId}`);
+  if (options.limit !== undefined && !isNaN(options.limit))
+    url.searchParams.append("limit", `${options.limit}`);
+  if (options.offset !== undefined && !isNaN(options.offset))
+    url.searchParams.append("offset", `${options.offset}`);
+  if (options.userId !== undefined && !isNaN(options.userId))
+    url.searchParams.append("user_id", `${options.userId}`);
 
-  return await fetch(url.toString(), {
+  const res = await fetch(url.toString(), {
     method: "GET",
   });
+  if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
+  return await res.json();
 }
 
 export async function getTilesWithinBounds(

@@ -2,3 +2,4 @@
 .gitattributes
 .vscode
 auth.db
+cov_profile

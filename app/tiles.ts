@@ -7,8 +7,9 @@ import {
 
 const app = new Hono();
 
-app.get("/leaderboard", refreshTokensIfExpired, async (c: Context) => {
-  return await getLeaderboard(c);
+app.get("/leaderboard", async (c: Context) => {
+  const { user_id } = c.req.query();
+  return c.json(await getLeaderboard({ userId: parseInt(user_id) }));
 });
 
 app.get("/in-range", async (c: Context) => {
