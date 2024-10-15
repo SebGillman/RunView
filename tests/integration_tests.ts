@@ -331,3 +331,11 @@ Deno.test("[/home] Check home page", async (t) => {
     }
   });
 });
+
+Deno.test("[/] Welcome page", async () => {
+  const res = await fetch(BASE_URL, { method: "GET" });
+  assert(res.ok);
+  assertEquals(res.status, 200);
+  assertEquals(res.url, BASE_URL + "/");
+  await res.body?.cancel();
+});
