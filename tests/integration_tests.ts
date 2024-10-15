@@ -5,10 +5,7 @@ import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 import app from "../main.ts";
 app;
 // load from local env if available
-const envFile = await load();
-for (const [k, v] of Object.entries(envFile)) {
-  Deno.env.set(k, v);
-}
+await load({ export: true });
 
 const BASE_URL = Deno.env.get("BASE_URL");
 const TILE_TRACKER_URL = Deno.env.get("TILE_TRACKER_URL");

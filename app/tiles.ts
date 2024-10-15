@@ -1,9 +1,5 @@
-import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
-import {
-  getLeaderboard,
-  getTilesWithinBounds,
-  refreshTokensIfExpired,
-} from "../utils/index.ts";
+import { type Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { getLeaderboard, getTilesWithinBounds } from "../utils/index.ts";
 
 const app = new Hono();
 
@@ -14,6 +10,9 @@ app.get("/leaderboard", async (c: Context) => {
 
 app.get("/in-range", async (c: Context) => {
   const { bottomLeftX, bottomLeftY, topRightX, topRightY } = c.req.query();
+  if (![bottomLeftX, bottomLeftY, topRightX, topRightY].every((t) => !!t)) {
+    return c.json({}, 403);
+  }
   return c.json(
     await getTilesWithinBounds(bottomLeftX, bottomLeftY, topRightX, topRightY)
   );

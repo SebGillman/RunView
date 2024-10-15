@@ -1,5 +1,5 @@
 import { Client } from "npm:@libsql/core/api";
-import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
+import { Database } from "jsr:@db/sqlite";
 import { ChartData } from "../types.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.45/src/dom/dom-parser.ts";
 import {
@@ -8,11 +8,11 @@ import {
 } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
 import {
   barChart,
-  lineChart,
   getCurrentCumulativeYearDistance,
   getWeeklyRunDistance,
+  lineChart,
 } from "./index.ts";
-import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 
 export async function getHTMLDoc(path: string): Promise<HTMLDocument> {
   const parser = new DOMParser();
@@ -26,7 +26,7 @@ export async function getHTMLDoc(path: string): Promise<HTMLDocument> {
 
 export async function addCharts(c: Context, body: Element, env: Client) {
   let bodyWithCharts = body;
-  const client = new DB("./db/charts.db");
+  const client = new Database("./db/charts.db");
 
   // Collect all chart elements
   const chartElements = Array.from(body.querySelectorAll("canvas"));
@@ -39,10 +39,13 @@ export async function addCharts(c: Context, body: Element, env: Client) {
   if (chartIds.length === 0) return bodyWithCharts;
 
   // Use parameterized query to retrieve data for all charts at once
-  const chartDataRows = client.query(
-    `SELECT * FROM charts WHERE id IN (${chartIds.map(() => "?").join(",")})`,
-    chartIds
-  );
+  const chartDataRows = client
+    .prepare(
+      `SELECT * FROM charts WHERE id IN (${
+        chartIds.map(() => "?").join(",")
+      });`,
+    )
+    .all(chartIds);
 
   if (!chartDataRows.length) throw new Error("No data exists for the charts!");
 
@@ -69,8 +72,7 @@ export async function addCharts(c: Context, body: Element, env: Client) {
       if (!(element instanceof Element)) return bodyWithCharts;
 
       const elementId = (element as Element).getAttribute("id");
-      const chartRow = chartDataRows.find(([id]) => id === elementId);
-
+      const chartRow = chartDataRows.find((obj) => obj["id"] === elementId);
       if (!chartRow) return bodyWithCharts; // No chart data for this element
 
       const [
@@ -80,7 +82,7 @@ export async function addCharts(c: Context, body: Element, env: Client) {
         chartXlabel,
         chartYlabel,
         chartFunc,
-      ] = chartRow as [string, string, string, string, string, string];
+      ] = Object.values(chartRow) as string[];
 
       // Skip if invalid chartType
       if (!(chartType in chartTypes)) return bodyWithCharts;
@@ -98,7 +100,7 @@ export async function addCharts(c: Context, body: Element, env: Client) {
 
       // Update bodyWithCharts with the newly rendered chart
       return chartTypes[chartType](bodyWithCharts, elementId!, outputData);
-    })
+    }),
   );
 
   // Update the body with all charts

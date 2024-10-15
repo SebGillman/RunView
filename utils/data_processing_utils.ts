@@ -1,4 +1,4 @@
-import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { Client } from "npm:@libsql/core/api";
 import { Activity, WeightMatchData } from "../types.ts";
 import {
@@ -16,7 +16,7 @@ function getWeekStart(originalDate: Date): string {
 export async function getWeeklyRunDistance(
   c: Context,
   env: Client,
-  filterYear?: string
+  filterYear?: string,
 ) {
   const data: Activity[] = await getLoggedInAthleteActivities(c, env, "Run");
   const grouped: { [key: string]: number } = {};
@@ -50,8 +50,9 @@ export async function getWeeklyRunDistance(
       date.getMonth() + 1
     }-${date.getDate()}`;
 
-    interpolatedGrouped[dateString] =
-      keys.indexOf(dateString) !== -1 ? grouped[dateString] : 0;
+    interpolatedGrouped[dateString] = keys.indexOf(dateString) !== -1
+      ? grouped[dateString]
+      : 0;
   }
 
   return interpolatedGrouped;
@@ -60,12 +61,12 @@ export async function getWeeklyRunDistance(
 export async function getCumulativeWeeklyYearDistance(
   c: Context,
   env: Client,
-  year: string
+  year: string,
 ) {
   const data: { [key: string]: number } = await getWeeklyRunDistance(
     c,
     env,
-    year
+    year,
   );
   let prev = 0;
   for (const key of Object.keys(data)) {
@@ -77,7 +78,7 @@ export async function getCumulativeWeeklyYearDistance(
 
 export async function getCurrentCumulativeYearDistance(
   c: Context,
-  env: Client
+  env: Client,
 ) {
   const res = await getCumulativeWeeklyYearDistance(c, env, "2024");
   return res;
@@ -86,12 +87,12 @@ export async function getCurrentCumulativeYearDistance(
 export async function getTotalWeightTrainingVolume(
   c: Context,
   env: Client,
-  activityId: number
+  activityId: number,
 ): Promise<number> {
   const { description } = await getLoggedInAthleteActivityById(
     c,
     env,
-    activityId
+    activityId,
   );
   const descriptionRows = description?.split("\n");
   let totalWeight = 0;

@@ -5,7 +5,7 @@ import { Element } from "https://deno.land/x/deno_dom@v0.1.45/deno-dom-wasm.ts";
 export function barChart(
   body: Element,
   chartName: string,
-  data: ChartData
+  data: ChartData,
 ): Element {
   const parser = new DOMParser();
   const dom = parser.parseFromString(body.innerHTML, "text/html");
@@ -91,7 +91,7 @@ export function barChart(
   const chartTitle = dom.createElement("h1");
   chartTitle.setAttribute(
     "style",
-    "color:white; text-align:center; padding-top:10px"
+    "color:white; text-align:center; padding-top:10px",
   );
   chartTitle.innerHTML = data.title;
 
@@ -103,7 +103,7 @@ export function barChart(
 export function lineChart(
   body: Element,
   chartName: string,
-  data: ChartData
+  data: ChartData,
 ): Element {
   const parser = new DOMParser();
   const dom = parser.parseFromString(body.innerHTML, "text/html");
@@ -191,7 +191,7 @@ export function lineChart(
   const chartTitle = dom.createElement("h1");
   chartTitle.setAttribute(
     "style",
-    "color:white; text-align:center; padding-top:10px"
+    "color:white; text-align:center; padding-top:10px",
   );
   chartTitle.innerHTML = data.title;
 

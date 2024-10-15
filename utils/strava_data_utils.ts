@@ -1,11 +1,11 @@
-import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { Client } from "npm:@libsql/core/api";
 import { Activity, Athlete } from "../types.ts";
 import { getEnvVar } from "./index.ts";
 
 export async function getLoggedInAthlete(
   c: Context,
-  env: Client
+  env: Client,
 ): Promise<Athlete> {
   const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
   const response = await fetch("https://www.strava.com/api/v3/athlete", {
@@ -16,6 +16,9 @@ export async function getLoggedInAthlete(
     }),
   });
   const res = await response.json();
+  if (res.message === "Authorization Error") {
+    throw new Error("Error getting athlete.");
+  }
   return res;
 }
 
@@ -23,7 +26,7 @@ export async function getLoggedInAthleteActivities(
   c: Context,
   env: Client,
   activityType: string,
-  limit?: number
+  limit?: number,
 ) {
   if (!limit) limit = 200;
   const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
@@ -35,7 +38,7 @@ export async function getLoggedInAthleteActivities(
         Authorization: `Bearer ${ACCESS_TOKEN}`,
         Accept: "application/json",
       }),
-    }
+    },
   );
   if (!response.ok) throw new Error("Retrieval of activities failed!");
   const res: Activity[] = await response.json();
@@ -50,7 +53,7 @@ export async function getLoggedInAthleteActivities(
 export async function getLoggedInAthleteActivityById(
   c: Context,
   env: Client,
-  id: number
+  id: number,
 ): Promise<Activity> {
   const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
   const response = await fetch(
@@ -61,7 +64,7 @@ export async function getLoggedInAthleteActivityById(
         Authorization: `Bearer ${ACCESS_TOKEN}`,
         Accept: "application/json",
       }),
-    }
+    },
   );
   if (!response.ok) {
     console.log(response);
@@ -76,7 +79,7 @@ export async function getLoggedInAthleteActivityById(
 export async function getActivityStream(
   c: Context,
   env: Client,
-  activityId: number
+  activityId: number,
 ): Promise<{ latlng: { data: Array<[number, number]> } }> {
   const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
 
@@ -88,7 +91,7 @@ export async function getActivityStream(
         Authorization: `Bearer ${ACCESS_TOKEN}`,
         Accept: "application/json",
       }),
-    }
+    },
   );
 
   if (!res.ok) {

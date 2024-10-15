@@ -1,4 +1,4 @@
-import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { Client } from "npm:@libsql/core/api";
 import { TileTrackerCoordPayload } from "../types.ts";
 import { getActivityStream } from "./index.ts";
@@ -7,14 +7,14 @@ export async function passActivityToTileTracker(
   c: Context,
   env: Client,
   activityId: number,
-  createdAt: number
+  createdAt: number,
 ) {
   const userId: number = Number(c.get("userId"));
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 
   if (!tileTrackerUrl) {
     console.log(
-      "ERROR: passActivityToTileTracker failed due to missing TILE_TRACKER_URL"
+      "ERROR: passActivityToTileTracker failed due to missing TILE_TRACKER_URL",
     );
     return;
   }
@@ -27,7 +27,6 @@ export async function passActivityToTileTracker(
     coords: activityStream.latlng.data,
     createdAt,
   };
-
 
   const res = await fetch(tileTrackerUrl + "/process-activity", {
     method: "POST",
@@ -42,7 +41,7 @@ export async function passActivityToTileTracker(
     console.log(
       "ERROR [passActivityToTileTracker]",
       res.status,
-      res.statusText
+      res.statusText,
     );
     return;
   }
@@ -58,12 +57,15 @@ export async function getLeaderboard(options: {
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 
   const url = new URL(tileTrackerUrl + "/leaderboard");
-  if (options.limit !== undefined && !isNaN(options.limit))
+  if (options.limit !== undefined && !isNaN(options.limit)) {
     url.searchParams.append("limit", `${options.limit}`);
-  if (options.offset !== undefined && !isNaN(options.offset))
+  }
+  if (options.offset !== undefined && !isNaN(options.offset)) {
     url.searchParams.append("offset", `${options.offset}`);
-  if (options.userId !== undefined && !isNaN(options.userId))
+  }
+  if (options.userId !== undefined && !isNaN(options.userId)) {
     url.searchParams.append("user_id", `${options.userId}`);
+  }
 
   const res = await fetch(url.toString(), {
     method: "GET",
@@ -76,7 +78,7 @@ export async function getTilesWithinBounds(
   bottomLeftX: string,
   bottomLeftY: string,
   topRightX: string,
-  topRightY: string
+  topRightY: string,
 ): Promise<Response> {
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 

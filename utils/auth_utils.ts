@@ -1,4 +1,4 @@
-import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { Client } from "npm:@libsql/core/api";
 
 export function getAccessUrl(): string {
@@ -27,7 +27,7 @@ export function getAccessUrl(): string {
 
     return urlString;
   } catch (error) {
-    throw new Error(error);
+    throw new Error(error as string);
   }
 }
 
@@ -36,20 +36,17 @@ export async function getTokenExchange(
   next: () => Promise<void>
 ): Promise<void> {
   try {
-    const env: Client = c.get("env");
-    const db: Client = c.get("db");
+    const reqUrl = new URL(c.req.url);
+    const reqSearchParams = reqUrl.searchParams;
+
+    const accessCode = reqSearchParams.get("code");
+    if (!accessCode) throw new Error("Missing access code");
 
     const CLIENT_ID = Deno.env.get("CLIENT_ID");
     const CLIENT_SECRET = Deno.env.get("CLIENT_SECRET");
 
     if (!CLIENT_ID) throw new Error("Missing CLIENT_ID");
     if (!CLIENT_SECRET) throw new Error("Missing CLIENT_SECRET");
-
-    const reqUrl = new URL(c.req.url);
-    const reqSearchParams = reqUrl.searchParams;
-
-    const accessCode = reqSearchParams.get("code");
-    if (!accessCode) throw new Error("Missing access code");
 
     const tokenExchange = await fetch(
       "https://www.strava.com/api/v3/oauth/token",
@@ -61,9 +58,12 @@ export async function getTokenExchange(
           code: accessCode,
           grant_type: "authorization_code", //todo
         }),
-      }
+      },
     );
-    if (!tokenExchange.ok) throw new Error("Token Exchange failed.");
+    if (!tokenExchange.ok) {
+      await tokenExchange.text();
+      throw new Error("Token Exchange failed.");
+    }
 
     const tokenData = await tokenExchange.json();
 
@@ -75,28 +75,29 @@ export async function getTokenExchange(
     const REFRESH_TOKEN = tokenData.refresh_token;
     const ACCESS_TOKEN = tokenData.access_token;
 
-    env.execute(`
+    const env: Client = c.get("env");
+    await env.execute(`
             INSERT OR REPLACE INTO "users_strava_auth" (
-              id, 
-              ACCESS_TOKEN, 
-              REFRESH_TOKEN, 
+              id,
+              ACCESS_TOKEN,
+              REFRESH_TOKEN,
               ACCESS_TOKEN_EXPIRES_AT
             ) VALUES (
-              '${userId}', 
-              '${ACCESS_TOKEN}', 
-              '${REFRESH_TOKEN}', 
+              '${userId}',
+              '${ACCESS_TOKEN}',
+              '${REFRESH_TOKEN}',
               '${tokenExpiresAt as string}'
             );
       `);
   } catch (e) {
-    console.error(e);
+    console.log(e);
   }
-  await next();
+  return await next();
 }
 
 export async function refreshTokensIfExpired(
   c: Context,
-  next: () => Promise<void>
+  next: () => Promise<void>,
 ): Promise<void> {
   const env: Client = c.get("env");
 
@@ -127,7 +128,7 @@ export async function refreshTokensIfExpired(
         refresh_token: REFRESH_TOKEN,
         grant_type: "refresh_token",
       }),
-    }
+    },
   );
 
   if (!refreshResponse.ok) throw new Error("Refresh Failed!");
@@ -138,7 +139,7 @@ export async function refreshTokensIfExpired(
   REFRESH_TOKEN = refreshData.refresh_token;
   const ACCESS_TOKEN = refreshData.access_token;
 
-  env.execute(`
+  await env.execute(`
         UPDATE "users_strava_auth"
         SET ACCESS_TOKEN = '${ACCESS_TOKEN}',
         REFRESH_TOKEN = '${REFRESH_TOKEN}',
@@ -153,21 +154,23 @@ export async function getEnvVar(c: Context, env: Client, column: string) {
   const userId = c.get("userId");
   const res = (
     await env.execute(
-      `SELECT * FROM "users_strava_auth" WHERE id = '${userId}';`
+      `SELECT * FROM "users_strava_auth" WHERE id = '${userId}';`,
     )
   ).rows[0][column] as string;
   // console.log(`Var ${column} is ${res}`);
   return res;
 }
 
+/* BUG: If user deleted from auth but still has cookie
+this will cause failures with login, handle gracefully*/
 export const getSessionFromCookie = async (
   c: Context,
-  next: () => Promise<void>
+  next: () => Promise<void>,
 ) => {
   const cookieHeader = c.req.header("Cookie");
   if (cookieHeader) {
     const cookies = Object.fromEntries(
-      cookieHeader.split("; ").map((c) => c.split("="))
+      cookieHeader.split("; ").map((c) => c.split("=")),
     );
     const sessionId = cookies["session_id"];
     c.set("userId", sessionId);
@@ -177,23 +180,24 @@ export const getSessionFromCookie = async (
 
 export const setSessionCookie = async (
   c: Context,
-  next: () => Promise<void>
+  next: () => Promise<void>,
 ) => {
   console.log("setsession start");
   const sessionId = c.get("userId");
+  if (!sessionId) return await next();
   c.header(
     "Set-Cookie",
-    `session_id=${sessionId}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax;Path=/`
+    `session_id=${sessionId}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax;Path=/`,
   );
-  await next();
+  return await next();
 };
 
 export const getSessionFromHeader = async (
   c: Context,
-  next: () => Promise<void>
+  next: () => Promise<void>,
 ) => {
   const userId = c.req.header("userId");
   if (!userId) throw new Error("No user Id.");
   c.set("userId", userId);
-  await next();
+  return await next();
 };

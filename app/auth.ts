@@ -1,4 +1,4 @@
-import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import {
   getAccessUrl,
   getTokenExchange,
@@ -15,11 +15,9 @@ app.get("/login", async (c: Context) => {
 
 app.get("/access-code", getTokenExchange, setSessionCookie, (c: Context) => {
   const userId = c.get("userId");
-  if (!userId) return c.redirect("/auth/login");
-  try {
-    return c.redirect("/home");
-  } catch (error) {
-    return c.text(error);
+  if (!userId) {
+    return c.redirect("/auth/login");
   }
+  return c.redirect("/home");
 });
 export default app;

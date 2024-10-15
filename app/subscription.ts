@@ -1,4 +1,4 @@
-import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import {
   getEnvVar,
   getSessionFromCookie,
@@ -37,11 +37,12 @@ app.get(
           Authorization: `Bearer ${ACCESS_TOKEN}`,
           Accept: "application/json",
         }),
-      }
+      },
     );
+    if (!res.ok) throw new Error("Bad response");
     const resJson = await res.json();
     return c.json(resJson);
-  }
+  },
 );
 
 // sessionFromHeader for testing (postman)
@@ -75,11 +76,11 @@ app.post(
       {
         method: "POST",
         body: urlEncodedData,
-      }
+      },
     );
     if (!response.ok) return c.text("Subscription Failed!");
     return c.text("Subscription made, get incoming to /subscription/listen");
-  }
+  },
 );
 
 app.get("/listen", (c: Context) => {
@@ -90,11 +91,13 @@ app.get("/listen", (c: Context) => {
   const hubChallenge = searchParams.get("hub.challenge");
   const hubVerifyToken = searchParams.get("hub.verify_token");
 
-  if (hubVerifyToken !== verifyToken)
+  if (hubVerifyToken !== verifyToken) {
     throw new Error("Incorrect verification token!");
+  }
 
-  if (hubMode !== "subscribe" || !hubChallenge)
+  if (hubMode !== "subscribe" || !hubChallenge) {
     throw new Error("Request invalid!");
+  }
 
   c.status(200);
   return c.json({ "hub.challenge": hubChallenge });

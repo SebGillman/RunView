@@ -1,7 +1,7 @@
 // /** @jsxImportSource https://esm.sh/hono@v4.1.4/jsx */
 import { createClient } from "npm:@libsql/client@0.6.0/node";
 import { Client } from "npm:@libsql/core/api";
-import { Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { serveStatic } from "https://deno.land/x/hono@v4.1.4/middleware/serve-static/index.ts";
 import {
   addCharts,
@@ -13,10 +13,7 @@ import {
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
 // load from local env if available
-const envFile = await load();
-for (const [k, v] of Object.entries(envFile)) {
-  Deno.env.set(k, v);
-}
+await load({ export: true });
 
 console.log("START");
 
@@ -31,12 +28,12 @@ const app = new Hono();
 app.use("*", async (c: Context, next: () => Promise<void>) => {
   if (!!c.get("env") && !!c.get("db")) return await next();
 
-  const env: Client = createClient({
+  const env = createClient({
     url: AUTH_TURSO_URL || "",
     authToken: AUTH_TURSO_AUTH_TOKEN,
   });
 
-  const db: Client = createClient({
+  const db = createClient({
     url: TURSO_URL || "",
     authToken: TURSO_AUTH_TOKEN,
   });

@@ -1,4 +1,4 @@
-import { Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
 import { Client } from "npm:@libsql/core/api";
 import { getLoggedInAthlete, getLoggedInAthleteActivityById } from "./index.ts";
 import { Athlete, WebHookRequest } from "../types.ts";
@@ -7,18 +7,19 @@ import { Activity } from "../types.ts";
 export async function createUserDataTables(
   c: Context,
   db: Client,
-  env: Client
+  env: Client,
 ) {
-  // console.log("USER DATA START");
-  const tables = await db.execute(`
+  try {
+    // console.log("USER DATA START");
+    const tables = await db.execute(`
   SELECT name 
   FROM sqlite_master 
   WHERE type = 'table';`);
 
-  if (tables.rows.every((x) => x.name !== `users`)) {
-    console.log("Users table missing");
-    await db.execute(
-      `CREATE TABLE "users" (
+    if (tables.rows.every((x) => x.name !== `users`)) {
+      console.log("Users table missing");
+      await db.execute(
+        `CREATE TABLE "users" (
       id INTEGER PRIMARY KEY NOT NULL,
       username TEXT,
       resource_state TEXT,
@@ -54,54 +55,56 @@ export async function createUserDataTables(
       shoes BLOB,
       is_winback_via_upload BOOLEAN,
       is_winback_via_view BOOLEAN
-    );`
+    );`,
+      );
+      console.log("Users table created!");
+    }
+
+    const userId = Number(c.get("userId"));
+    if (!userId) throw new Error("Failed to retrieve userId.");
+
+    const authenticatedUsers = await env.execute(
+      `SELECT id FROM "users_strava_auth"`,
     );
-    console.log("Users table created!");
-  }
+    const users = await db.execute("SELECT id,username FROM users");
 
-  const userId = Number(c.get("userId"));
-  if (!userId) throw new Error("Failed to retrieve userId.");
+    // if tables being created by webhook, user will be missing from authTable, therefore just store id in a placeholder row.
+    if (!authenticatedUsers.rows.some((x) => x.id === userId)) {
+      console.log("User missing from auth and user tables.");
 
-  const authenticatedUsers = await env.execute(
-    `SELECT id FROM "users_strava_auth"`
-  );
-  const users = await db.execute("SELECT id,username FROM users");
+      const user: Partial<Athlete> = { id: userId };
+      const columns = Object.keys(user)
+        .map((value) => JSON.stringify(value))
+        .join(", ");
+      const values = Object.values(user)
+        .map((value) => `'${JSON.stringify(value)}'`)
+        .join(", ");
 
-  // if tables being created by webhook, user will be missing from authTable, therefore just store id in a placeholder row.
-  if (!authenticatedUsers.rows.some((x) => x.id === userId)) {
-    console.log("User missing from auth and user tables.");
+      await db.execute(`INSERT INTO users (${columns}) VALUES (${values});`);
+      console.log("Temporary user record created");
+    } else if (
+      !users.rows.some((x) => x.id === userId && x.username !== null)
+    ) {
+      console.log("User missing from users table.");
 
-    const user: Partial<Athlete> = { id: userId };
-    const columns = Object.keys(user)
-      .map((value) => JSON.stringify(value))
-      .join(", ");
-    const values = Object.values(user)
-      .map((value) => `'${JSON.stringify(value)}'`)
-      .join(", ");
+      const user: Athlete = await getLoggedInAthlete(c, env);
+      console.log(user);
+      const columns = Object.keys(user)
+        .map((value) => JSON.stringify(value))
+        .join(", ");
+      const values = Object.values(user)
+        .map((value) => `'${JSON.stringify(value)}'`)
+        .join(", ");
 
-    await db.execute(`INSERT INTO users (${columns}) VALUES (${values});`);
-    console.log("Temporary user record created");
-  } else if (!users.rows.some((x) => x.id === userId && x.username !== null)) {
-    console.log("User missing from users table.");
+      await db.execute(
+        `INSERT OR REPLACE INTO users (${columns}) VALUES (${values});`,
+      );
+      console.log("User record created");
+    }
 
-    const user: Athlete = await getLoggedInAthlete(c, env);
-
-    const columns = Object.keys(user)
-      .map((value) => JSON.stringify(value))
-      .join(", ");
-    const values = Object.values(user)
-      .map((value) => `'${JSON.stringify(value)}'`)
-      .join(", ");
-
-    await db.execute(
-      `INSERT OR REPLACE INTO users (${columns}) VALUES (${values});`
-    );
-    console.log("User record created");
-  }
-
-  if (tables.rows.every((x) => x.name !== `activities`)) {
-    await db.execute(
-      `CREATE TABLE activities (
+    if (tables.rows.every((x) => x.name !== `activities`)) {
+      await db.execute(
+        `CREATE TABLE activities (
       id INTEGER UNIQUE NOT NULL,
       resource_state INTEGER,
       athlete_id INTEGER NOT NULL,
@@ -177,23 +180,23 @@ export async function createUserDataTables(
       available_zones BLOB,
       athlete BLOB,
       private_note TEXT
-    );`
-    );
-    console.log("Created activity data table.");
-  }
+    );`,
+      );
+      console.log("Created activity data table.");
+    }
 
-  const triggers = await db.execute(`
+    const triggers = await db.execute(`
       SELECT name
       FROM sqlite_master
       WHERE type = 'trigger'
         AND name = 'delete_activities_on_delete_athlete';`);
 
-  if (
-    triggers.rows.every(
-      (row) => row.name !== "delete_activities_on_delete_athlete"
-    )
-  ) {
-    await db.execute(`
+    if (
+      triggers.rows.every(
+        (row) => row.name !== "delete_activities_on_delete_athlete",
+      )
+    ) {
+      await db.execute(`
     CREATE TRIGGER 'delete_activities_on_delete_athlete'
     AFTER DELETE ON users
     FOR EACH ROW
@@ -202,8 +205,12 @@ export async function createUserDataTables(
       WHERE athlete_id = OLD.id;
     END;
     `);
+    }
+    return;
+  } catch (e) {
+    console.log("CreateUserDataTables Failed");
+    throw e;
   }
-  return;
 }
 
 export async function createAuthTable(env: Client) {
@@ -223,7 +230,7 @@ export async function createAuthTable(env: Client) {
       ACCESS_TOKEN TEXT,
       ACCESS_TOKEN_EXPIRES_AT TEXT,
       REFRESH_TOKEN TEXT
-    );`
+    );`,
   );
   console.log("User strava auth table created");
   return;
@@ -234,13 +241,13 @@ async function addUserOrActivityToDbById(
   db: Client,
   env: Client,
   table: string,
-  objectId: number
+  objectId: number,
 ) {
   const funcMap: {
     [key: string]: (
       c: Context,
       env: Client,
-      _objectId: number
+      _objectId: number,
     ) => Promise<Activity | Athlete>;
   } = {
     users: (c: Context, env: Client, _objectId: number) =>
@@ -269,7 +276,7 @@ export async function eventHandler(
   c: Context,
   db: Client,
   env: Client,
-  event: WebHookRequest
+  event: WebHookRequest,
 ) {
   const objectType = event.object_type;
   let table;
@@ -303,7 +310,9 @@ export async function eventHandler(
       const updateString = Object.entries(event.updates)
         .map(
           ([key, value]) =>
-            `'${updateMap[key]}'='${JSON.stringify(value).replace(/'/g, "''")}'`
+            `'${updateMap[key]}'='${
+              JSON.stringify(value).replace(/'/g, "''")
+            }'`,
         )
         .join(", ");
 
