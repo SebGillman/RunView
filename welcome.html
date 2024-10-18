@@ -77,14 +77,28 @@
           font-size: 1.875rem; /* For 2xl screens and larger */
         }
       }
+      html,
+      body {
+        scrollbar-width: none;
+        overflow: auto;
+      }
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, and Edge */
+      }
+
+      @font-face {
+        font-family: "Mondrake";
+        src: url("assets/Kaffe-Regular.otf") format("truetype"); /* Point to where the .ttf is located */
+        font-weight: normal;
+        font-style: normal;
+      }
     </style>
   </head>
   <body class="flex flex-col" style="background-color: papayawhip">
     <!-- background="assets/wild-sea.png" -->
-    <nav class="nav fixed-navbar shadow-md center">
-      <div
-        class="flex center container m-auto p-auto justify-center h-full w-full"
-      >
+    <nav class="nav fixed-navbar shadow-md" style="font-family: Mondrake">
+      <div class="flex container mx-auto h-full w-full justify-evenly">
         <a class="flex" href="https://sebgillman.top">
           <h1 class="nav-text m-auto px-10 items-center justify-center">
             Sebastian Gillman
@@ -104,12 +118,11 @@
     <div
       id="nav placeholder"
       style="height: 15%; margin-top: 16; margin-bottom: 16"
-    >
-    </div>
+    ></div>
     <div
       class="login center rounded-xl h-80 flex flex-col container my-10 py-10"
     >
-      <h1 class="center text-2xl font-bold italic">
+      <h1 class="center text-2xl font-bold">
         RunView - Strava Stats Dashboard
       </h1>
       <a href="/home" class="center">

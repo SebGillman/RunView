@@ -17,7 +17,7 @@ export function barChart(
   const chartScript = dom.createElement("script");
   chartScript.textContent = `
       var element = document.getElementById("${chartName}");
-      var chart_${nameWithoutDashes} = echarts.init(element, 'dark',{
+      var chart_${nameWithoutDashes} = echarts.init(element, 'light',{
         useCoarsePointer: true,
         width:document.getElementById("${chartName}-parent").offsetWidth,
         height:document.getElementById("${chartName}-parent").offsetHeight
@@ -38,12 +38,19 @@ export function barChart(
             data: [${data.data_labels.map((date) => JSON.stringify(date))}],
             axisLabel: {
                 // interval: 1,
+                color: 'black',
                 rotate: 40
             }
         },
         yAxis: {
             splitNumber: 3,
+            splitLine:{
+                lineStyle: {
+                    color: 'rgba(0, 0, 0, 0.5)' // Change to your preferred color
+                }
+            },
             axisLabel: {
+                color: 'black',
                 formatter: '{value} km'
             },
         },
@@ -64,11 +71,11 @@ export function barChart(
                     }
                 }],
                 lineStyle: {
-                    color: 'white'
+                    color: 'black'
                 }
             },
             itemStyle: {
-                color: 'rgb(242, 102, 171)'
+                color: '#57481f'
             },
             tooltip: {
                 valueFormatter: value => value + ' kilometers'
@@ -115,7 +122,7 @@ export function lineChart(
   const chartScript = dom.createElement("script");
   chartScript.textContent = `
         var element = document.getElementById("${chartName}");
-        var chart_${nameWithoutDashes} = echarts.init(element, 'dark',{
+        var chart_${nameWithoutDashes} = echarts.init(element, 'light',{
           useCoarsePointer: true,
           width:document.getElementById("${chartName}-parent").offsetWidth,
           height:document.getElementById("${chartName}-parent").offsetHeight
@@ -137,13 +144,20 @@ export function lineChart(
               data: [${data.data_labels.map((date) => JSON.stringify(date))}],
               axisLabel: {
                   // interval: 1,
+                  color: 'black',
                   rotate: 40
               }
           },
           yAxis: {
               type: 'value',
               splitNumber: 3,
+              splitLine:{
+                  lineStyle: {
+                      color: 'rgba(0, 0, 0, 0.5)' // Change to your preferred color
+                  }
+              },
               axisLabel: {
+                  color: 'black',
                   formatter: '{value} km'
               },
           },
@@ -164,11 +178,11 @@ export function lineChart(
                       }
                   }],
                   lineStyle: {
-                      color: 'white'
+                      color: 'black'
                   }
               },
               itemStyle: {
-                  color: 'rgb(242, 102, 171)'
+                  color: '#57481f'
               },
               tooltip: {
                   valueFormatter: value => value + ' kilometers'

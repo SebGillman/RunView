@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
-    href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
-    rel="stylesheet"
-  />    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+      href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
 
     <style>
       .center {
@@ -15,48 +16,480 @@
       }
       .fixed-navbar {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background-color: #333;
-        padding: 10px 0;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #f6d989;
+        box-shadow: 5px 5px #57481f;
+
+        /* background-color: #cfa674; */
         z-index: 1000; /* Ensure navbar appears above other content */
+      }
+      .nav {
+        border-radius: 10px;
+        border: 5px, solid, #57481f;
+        font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+        width: 100%;
+        height: 15%;
+        max-width: 1000px;
+        justify-content: center;
+        justify-items: center;
+        margin: auto auto auto auto;
+        overflow: hidden;
+      }
+      .login {
+        border: 5px, solid, #57402e;
+        background-color: #fff1e6;
+        max-width: 1000px;
+        font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+        box-shadow: 5px 5px #57402e;
+      }
+      .footer {
+        border-radius: 10px;
+        border: 5px, solid, rgb(52, 19, 1);
+        background-color: rgb(144, 51, 2);
+        box-shadow: 5px 5px rgb(52, 19, 1);
+        width: 100%;
+        max-width: 1000px;
+        justify-content: center;
+        margin: 16 auto;
+      }
+      .nav-text {
+        font-size: 0.75rem; /* Default size */
+      }
+
+      @media (min-width: 640px) {
+        .nav-text {
+          font-size: 1.125rem; /* For sm screens and larger */
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .nav-text {
+          font-size: 1.5rem; /* For lg screens and larger */
+        }
+      }
+
+      @media (min-width: 1536px) {
+        .nav-text {
+          font-size: 1.875rem; /* For 2xl screens and larger */
+        }
+      }
+      html,
+      body {
+        scrollbar-width: none;
+        overflow: auto;
+      }
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, and Edge */
+      }
+
+      @font-face {
+        font-family: "Mondrake";
+        src: url("assets/Kaffe-Regular.otf") format("truetype"); /* Point to where the .ttf is located */
+        font-weight: normal;
+        font-style: normal;
       }
     </style>
   </head>
-  <body style="justify-items: center;"">
-    <nav class="p-4 text-white fixed-navbar shadow-md">
-      <div class="flex center container mx-auto">
-        <a href="https://sebgillman.top">
-          <h1 class="text-3xl m-1 px-10">Sebastian Gillman</h1>
+  <body style="justify-items: center; background-color: papayawhip">
+    <nav class="nav fixed-navbar shadow-md" style="font-family: Mondrake">
+      <div class="flex container mx-auto h-full w-full justify-evenly">
+        <a class="flex" href="https://sebgillman.top">
+          <h1 class="nav-text m-auto px-10 items-center justify-center">
+            Sebastian Gillman
+          </h1>
         </a>
-        <a href="https://sebgillman.top/projects/all/">
-          <h1 class="text-2xl m-2 px-2">Projects</h1>
+        <a class="flex" href="https://sebgillman.top/projects/all/">
+          <h1 class="nav-text m-auto px-2">Projects</h1>
         </a>
-        <a href="https://sebgillman.top#education">
-          <h1 class="text-2xl m-2 px-2">Education</h1>
+        <a class="flex" href="https://sebgillman.top#education">
+          <h1 class="nav-text m-auto px-2">Education</h1>
         </a>
-        <a href="https://sebgillman.top#work">
-          <h1 class="text-2xl m-2 px-2">Work</h1>
+        <a class="flex" href="https://sebgillman.top#work">
+          <h1 class="nav-text m-auto px-2">Work</h1>
         </a>
       </div>
     </nav>
     <div
-      id="charts-container"
-      class="w-full h-full flex px-12 mt-12"
-      style="background-color: #2d294a;"
-    >
-      <div id="weekly-distance-parent" class="mx-auto my-14 rounded-2xl overflow-hidden shadow-2xl" style="width: 40%; height: 55%; background-color: #100C2A;">
-        <canvas
-          id="weekly-distance"
-        ></canvas>
-      </div>
+      id="nav placeholder"
+      style="height: 15%; margin-top: 16; margin-bottom: 16"
+    ></div>
 
-      <div id="current-year-parent" class="mx-auto my-14 rounded-2xl overflow-hidden shadow-2xl" style="width: 40%; height: 55%; background-color: #100C2A;">
-        <canvas
-          id="current-year"
-        ></canvas>
+    <div
+      id="user"
+      class="mt-12 h-1/8 flex mx-auto"
+      style="
+        justify-content: space-evenly;
+        font-family: Mondrake;
+        max-width: 1000px;
+      "
+    >
+      <h1
+        class="mr-auto pl-4 my-auto"
+        id="user-first-name"
+        style="
+          font-size: xx-large;
+          visibility: hidden;
+          opacity: 0;
+          transition: opacity 1s ease;
+        "
+      >
+        placeholder
+      </h1>
+
+      <a
+        id="logout"
+        class="ml-auto login rounded-2xl my-auto p-2"
+        style="font-family: Mondrake; cursor: pointer"
+        href="http://localhost:8000?logout=true"
+        >Logout</a
+      >
+
+      <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+          const res = await fetch("http://localhost:8000/get-user");
+          if (!res.ok) throw new Error("User not ok");
+          const resJson = await res.json();
+          const firstNameContainer = document.getElementById("user-first-name");
+          firstNameContainer.innerText = `Welcome, ${resJson.firstname}`;
+          firstNameContainer.style.visibility = "visible";
+          firstNameContainer.style.opacity = "100";
+        });
+      </script>
+    </div>
+
+    <div class="mt-12">
+      <h1
+        class="mx-auto pl-4"
+        style="max-width: 1000px; font-family: Mondrake; font-size: xx-large"
+      >
+        Charts
+      </h1>
+      <div
+        id="charts-container"
+        class="login mx-auto rounded-2xl w-full h-2/3 flex"
+      >
+        <div
+          id="weekly-distance-parent"
+          class="nav mx-auto my-14 rounded-2xl overflow-hidden"
+          style="width: 40%; height: 66%; background-color: #f6d989"
+        >
+          <canvas id="weekly-distance"></canvas>
+        </div>
+
+        <div
+          id="current-year-parent"
+          class="nav mx-auto my-14 rounded-2xl overflow-hidden"
+          style="width: 40%; height: 66%; background-color: #f6d989"
+        >
+          <canvas id="current-year"></canvas>
+        </div>
       </div>
     </div>
+
+    <div class="my-14">
+      <h1
+        class="mx-auto pl-4"
+        style="max-width: 1000px; font-family: Mondrake; font-size: xx-large"
+      >
+        Map
+      </h1>
+      <div
+        id="map-container"
+        class="login w-full h-3/4 mx-auto rounded-2xl overflow-hidden"
+      >
+        <iframe
+          class="relative h-full w-full"
+          style="overflow: hidden"
+          scrolling="no"
+          srcdoc='<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_25280c96c723246c35b2918a2b89ddb3 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" style="height:100%" id="map_25280c96c723246c35b2918a2b89ddb3" >
+            </div>
+        
+</body>
+<script>
+    
+    
+            var map_25280c96c723246c35b2918a2b89ddb3 = L.map(
+                "map_25280c96c723246c35b2918a2b89ddb3",
+                {
+                    center: [50.72881151098901, -1.8918131868131869],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 14,
+                    zoomControl: true,
+                    preferCanvas: false,
+                }
+            );
+
+            map_25280c96c723246c35b2918a2b89ddb3.on("load",fetchTileCoordinates());
+
+            // Function to fetch data from your API based on the current map bounds
+            // Render 1 degree by 1 degree 
+            function fetchTileCoordinates() {
+                const bounds = map_25280c96c723246c35b2918a2b89ddb3.getBounds();
+
+                const left = Math.floor(bounds["_southWest"]["lng"]);
+                const right = Math.ceil(bounds["_northEast"]["lng"]);
+                const bottom = Math.floor(bounds["_southWest"]["lat"]);
+                const top = Math.ceil(bounds["_northEast"]["lat"]);
+
+                // Clear existing tiles (needed for dynamic tile resizing)
+                clearExistingTiles();
+
+                //work out what 1 degree tiles to fetch for...
+                for (let x =left;x<right;x++){
+                  for (let y=bottom;y<top;y++){
+
+                    const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+1, topRightY:y+1})
+                    const res = fetch("http://localhost:8000/tiles/in-range?"+searchParams.toString())
+                        .then(response => response.json())
+                        .then(data => {
+    
+                            // Iterate over the returned coordinates and place a tile at each lat/lng
+                            data.tiles.forEach(coords => {
+                                // coords might be in the form {lat: ..., lng: ...}
+                                placeTileAt(coords.y_index*0.001+0.001, coords.x_index*0.001>180 ? coords.x_index*0.001-360:coords.x_index*0.001);
+                            });
+                        })
+                        .catch(error => console.error("Error fetching tile coordinates:", error));
+                  }
+                }
+            }
+
+            //TODO: loggedInUsers tiles get bold outline, and find way to store colour of id for each userId
+            // Function to place a custom "tile" (or div) at a lat/lng position
+            function placeTileAt(lat, lng) {
+
+                // Convert both points to pixel coordinates using Leaflets latLngToLayerPoint
+                const pixelPoint1 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([lat,lng]);
+                const pixelPoint2 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([lat+0.001,lng+0.001]);
+                
+                // Calculate the pixel difference between the two points
+                const pixelDifferenceX = Math.abs(pixelPoint1.x - pixelPoint2.x);
+                const pixelDifferenceY = Math.abs(pixelPoint1.y - pixelPoint2.y);
+
+                // Create a div for the tile
+                const tile = L.divIcon({
+                    className: "custom-tile",  // Add custom CSS for styling
+                    html: `<div style="width:${pixelDifferenceX}px;height:${pixelDifferenceY}px;background-color:rgba(100,0,100,0.5); border-radius:5px"></div>`,  // Content inside the tile
+                    iconSize: [1,1],  // Tile size in pixels
+                });
+
+
+                // Place the tile on the map at the given lat/lng
+                L.marker([lat, lng], { icon: tile }).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+            }
+
+            // Add an event listener to fetch data when the map is panned or zoomed
+            map_25280c96c723246c35b2918a2b89ddb3.on("moveend", fetchTileCoordinates);
+
+            // Optionally, clear existing tiles to avoid duplicates
+            function clearExistingTiles() {
+                // Remove all markers or tiles added previously
+                map_25280c96c723246c35b2918a2b89ddb3.eachLayer(function (layer) {
+                    if (layer instanceof L.Marker) {
+                        map_25280c96c723246c35b2918a2b89ddb3.removeLayer(layer);
+                    }
+                });
+            }
+
+            
+
+        
+    
+            var tile_layer_41d87743000f11b95160e9201fef61b1 = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                {"attribution": "CartoDB Positron", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+        
+            
+
+            
+    
+            var icon_52b5b999c6d948aa02c9e9937f3541c5 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "star", "iconColor": "white", "markerColor": "green", "prefix": "glyphicon"}
+            );
+            marker_2b908acf7f9bafb608c6cb0f1b913eba.setIcon(icon_52b5b999c6d948aa02c9e9937f3541c5);
+        
+    
+            marker_2b908acf7f9bafb608c6cb0f1b913eba.bindTooltip(
+                `<div>
+                     <h5>Start</h5>
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            
+    
+            var icon_6b933a75f8c3ce8b6e4fa901eb7b8ce5 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "flag", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_47654cd0a627305b867dc1230f5be311.setIcon(icon_6b933a75f8c3ce8b6e4fa901eb7b8ce5);
+        
+    
+            marker_47654cd0a627305b867dc1230f5be311.bindTooltip(
+                `<div>
+                     <h5>Finish</h5>
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_928e93390f9e3f51e5a9d2db573809be = L.marker(
+                [50.73131948721307, -1.8937411226583998],
+                {}
+            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+        
+    
+            marker_928e93390f9e3f51e5a9d2db573809be.bindTooltip(
+                `<div>
+                     <h5>KM #1</h5>
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_e6067ef3dcd5bc8499d554ba02a9600a = L.marker(
+                [50.72875658357437, -1.9033340615771257],
+                {}
+            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+        
+    
+            marker_e6067ef3dcd5bc8499d554ba02a9600a.bindTooltip(
+                `<div>
+                     <h5>KM #2</h5>
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_35eddd6497250978af20e22afdf67bc8 = L.marker(
+                [50.729461617636225, -1.9104138251111218],
+                {}
+            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+        
+    
+            marker_35eddd6497250978af20e22afdf67bc8.bindTooltip(
+                `<div>
+                     <h5>KM #3</h5>
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_ab3f10e174032aec09a2939e3054d91d = L.marker(
+                [50.72593844347074, -1.8985316630152775],
+                {}
+            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+        
+    
+            marker_ab3f10e174032aec09a2939e3054d91d.bindTooltip(
+                `<div>
+                     <h5>KM #4</h5>
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_25abb53525d91cfa2f0fda390e78212b = L.marker(
+                [50.722703597946875, -1.8850014538676403],
+                {}
+            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+        
+    
+            marker_25abb53525d91cfa2f0fda390e78212b.bindTooltip(
+                `<div>
+                     <h5>KM #5</h5>
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_b35d3236d996982e1e2b82ed9d134e52 = L.marker(
+                [50.72628140137491, -1.8830576483748604],
+                {}
+            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+        
+    
+            marker_b35d3236d996982e1e2b82ed9d134e52.bindTooltip(
+                `<div>
+                     <h5>KM #6</h5>
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_cc7199c635983315a0a25269a133c1d5 = L.marker(
+                [50.73332027813228, -1.8781298278228722],
+                {}
+            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+        
+    
+            marker_cc7199c635983315a0a25269a133c1d5.bindTooltip(
+                `<div>
+                     <h5>KM #7</h5>
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            map_25280c96c723246c35b2918a2b89ddb3.fitBounds(
+                [[50.72164, -1.91071], [50.73895, -1.87757]],
+                {}
+            );
+        
+</script>
+</html>'
+        >
+        </iframe>
+      </div>
+    </div>
+
+    <footer class="flex w-screen h-40 footer">
+      <img
+        class="center"
+        width="250px"
+        height="40px"
+        src="/assets/pwrdBy_strava_white/api_logo_pwrdBy_strava_horiz_white.png"
+        alt="powered by strava"
+      />
+    </footer>
   </body>
 </html>

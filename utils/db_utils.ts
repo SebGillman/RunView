@@ -77,7 +77,7 @@ export async function createUserDataTables(
         .map((value) => JSON.stringify(value))
         .join(", ");
       const values = Object.values(user)
-        .map((value) => `'${JSON.stringify(value)}'`)
+        .map((value) => `'${value}'`)
         .join(", ");
 
       await db.execute(`INSERT INTO users (${columns}) VALUES (${values});`);
@@ -93,7 +93,7 @@ export async function createUserDataTables(
         .map((value) => JSON.stringify(value))
         .join(", ");
       const values = Object.values(user)
-        .map((value) => `'${JSON.stringify(value)}'`)
+        .map((value) => `'${value}'`)
         .join(", ");
 
       await db.execute(

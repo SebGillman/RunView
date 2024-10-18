@@ -1,6 +1,6 @@
 // /** @jsxImportSource https://esm.sh/hono@v4.1.4/jsx */
 import { createClient } from "npm:@libsql/client@0.6.0/node";
-import { Client } from "npm:@libsql/core/api";
+import { Client, Value } from "npm:@libsql/core/api";
 import { type Context, Hono } from "jsr:@hono/hono";
 import { serveStatic } from "jsr:@hono/hono/serve-static";
 import {
@@ -56,6 +56,29 @@ app.use(
 );
 
 app.get(
+  "/get-user",
+  getSessionFromCookie,
+  refreshTokensIfExpired,
+  async (c: Context) => {
+    const db: Client = c.get("db");
+    const userId = c.get("userId");
+    if (!userId) throw new Error("userId failed to be retrieved from cookie");
+    if (!db) throw new Error("db failed to be retrieved");
+    const userRows = await db.execute({
+      sql: "SELECT * FROM users WHERE id = ?;",
+      args: [userId],
+    });
+
+    const user: { [key: string]: Value } = {};
+
+    for (let i = 0; i < userRows.columns.length; i++) {
+      user[userRows.columns[i]] = userRows.rows[0][i];
+    }
+    return c.json(user);
+  }
+);
+
+app.get(
   "/home",
   getSessionFromCookie,
   refreshTokensIfExpired,
@@ -82,6 +105,13 @@ app.get(
 );
 
 app.get("/", async (c: Context) => {
+  const { logout } = c.req.query();
+  if (logout) {
+    c.header(
+      "Set-Cookie",
+      `session_id=null; HttpOnly; Secure; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax;Path=/`
+    );
+  }
   const doc = await getHTMLDoc("welcome.html");
   const docHtmlText = doc.documentElement?.outerHTML;
   if (!docHtmlText) throw new Error("Failed to obtain document html");
