@@ -1,4 +1,4 @@
-import { type Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context, Hono } from "jsr:@hono/hono";
 import {
   getAccessUrl,
   getTokenExchange,

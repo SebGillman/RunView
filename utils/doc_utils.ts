@@ -12,7 +12,7 @@ import {
   getWeeklyRunDistance,
   lineChart,
 } from "./index.ts";
-import { type Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context } from "jsr:@hono/hono";
 
 export async function getHTMLDoc(path: string): Promise<HTMLDocument> {
   const parser = new DOMParser();

@@ -3,6 +3,7 @@
   "specifiers": {
     "jsr:@db/sqlite@*": "0.12.0",
     "jsr:@denosaurs/plug@1": "1.0.6",
+    "jsr:@hono/hono@*": "4.6.5",
     "jsr:@std/assert@0.217": "0.217.0",
     "jsr:@std/assert@0.221": "0.221.0",
     "jsr:@std/assert@^1.0.6": "1.0.6",
@@ -32,6 +33,9 @@
         "jsr:@std/fs",
         "jsr:@std/path@0.221"
       ]
+    },
+    "@hono/hono@4.6.5": {
+      "integrity": "68efe4a0ab7c4fb082cb71aa894a25e1c6cfad6d124dc943471e6758a7a1bdee"
     },
     "@std/assert@0.217.0": {
       "integrity": "c98e279362ca6982d5285c3b89517b757c1e3477ee9f14eb2fdf80a45aaa9642"

@@ -1,4 +1,4 @@
-import { type Context } from "https://deno.land/x/hono@v4.1.4/mod.ts";
+import { type Context } from "jsr:@hono/hono";
 import { Client } from "npm:@libsql/core/api";
 
 export function getAccessUrl(): string {

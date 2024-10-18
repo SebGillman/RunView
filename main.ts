@@ -1,8 +1,8 @@
 // /** @jsxImportSource https://esm.sh/hono@v4.1.4/jsx */
 import { createClient } from "npm:@libsql/client@0.6.0/node";
 import { Client } from "npm:@libsql/core/api";
-import { type Context, Hono } from "https://deno.land/x/hono@v4.1.4/mod.ts";
-import { serveStatic } from "https://deno.land/x/hono@v4.1.4/middleware/serve-static/index.ts";
+import { type Context, Hono } from "jsr:@hono/hono";
+import { serveStatic } from "jsr:@hono/hono/serve-static";
 import {
   addCharts,
   createUserDataTables,
