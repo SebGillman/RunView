@@ -2,6 +2,7 @@ import { type Context } from "jsr:@hono/hono";
 import { Client } from "npm:@libsql/core/api";
 import { TileTrackerCoordPayload } from "../types.ts";
 import { getActivityStream } from "./index.ts";
+import { cache } from "jsr:@hono/hono/cache";
 
 export async function passActivityToTileTracker(
   c: Context,
@@ -78,8 +79,18 @@ export async function getTilesWithinBounds(
   bottomLeftX: string,
   bottomLeftY: string,
   topRightX: string,
-  topRightY: string,
-): Promise<Response> {
+  topRightY: string
+): Promise<{
+  user_id: number;
+  tiles: {
+    x_index: number;
+    activity_id: number;
+    created_at: number;
+    user_id: number;
+    y_index: number;
+  }[];
+  tile_count?: number;
+}> {
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 
   const url = new URL(tileTrackerUrl + "/tiles");
@@ -94,3 +105,13 @@ export async function getTilesWithinBounds(
   const resJson = await res.json();
   return resJson;
 }
+
+export const tileInRangeCache = cache({
+  cacheName: "tiles-in-range",
+  cacheControl: "max-age=3600",
+  wait: true,
+  keyGenerator: (c: Context) => {
+    const userId = c.get("userId");
+    return userId ? c.req.url + `user:${userId}` : c.req.url;
+  },
+});
