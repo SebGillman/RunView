@@ -7,9 +7,7 @@
       href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
       rel="stylesheet"
     />
-    <script
-      src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"
-    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
 
     <style>
       .center {
@@ -23,14 +21,14 @@
         left: 50%;
         transform: translateX(-50%);
         background-color: #f6d989;
+        box-shadow: 5px 5px #57481f;
+
         /* background-color: #cfa674; */
         z-index: 1000; /* Ensure navbar appears above other content */
       }
-
       .nav {
         border-radius: 10px;
         border: 5px, solid, #57481f;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
         width: 100%;
         height: 15%;
@@ -45,12 +43,13 @@
         background-color: #fff1e6;
         max-width: 1000px;
         font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+        box-shadow: 5px 5px #57402e;
       }
       .footer {
         border-radius: 10px;
-        border: 5px, solid,  rgb(52, 19, 1);
+        border: 5px, solid, rgb(52, 19, 1);
         background-color: rgb(144, 51, 2);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 5px 5px rgb(52, 19, 1);
         width: 100%;
         max-width: 1000px;
         justify-content: center;
@@ -122,8 +121,12 @@
     <div
       class="login center rounded-xl h-80 flex flex-col container my-10 py-10"
     >
-      <h1 class="center text-2xl font-bold">
-        RunView - Strava Stats Dashboard
+      <h1
+        class="center text-2xl font-bold mx-auto"
+        style="font-family: Mondrake"
+      >
+        <p class="mx-auto text-center">RunView</p>
+        <p class="mx-auto text-center">A Running Game & Visualizer</p>
       </h1>
       <a href="/home" class="center">
         <img
