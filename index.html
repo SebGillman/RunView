@@ -143,13 +143,13 @@
         id="logout"
         class="ml-auto login rounded-2xl my-auto p-2"
         style="font-family: Mondrake; cursor: pointer"
-        href="http://localhost:8000?logout=true"
+        href="https://run.sebgillman.top?logout=true"
         >Logout</a
       >
 
       <script>
         document.addEventListener("DOMContentLoaded", async () => {
-          const res = await fetch("http://localhost:8000/get-user");
+          const res = await fetch("https://run.sebgillman.top/get-user");
           if (!res.ok) throw new Error("User not ok");
           const resJson = await res.json();
           const firstNameContainer = document.getElementById("user-first-name");
@@ -278,8 +278,8 @@
                     }
 
                     const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+1, topRightY:y+1})
-                    console.log("http://localhost:8000/tiles/in-range?"+searchParams.toString())
-                    const res = fetch("http://localhost:8000/tiles/in-range?"+searchParams.toString())
+                    console.log("https://run.sebgillman.top/tiles/in-range?"+searchParams.toString())
+                    const res = fetch("https://run.sebgillman.top/tiles/in-range?"+searchParams.toString())
                         .then(response => response.json())
                         .then(async (data)=> {
                             console.log(data)
@@ -306,7 +306,7 @@
 
                 if (tileColour===null){
                   // Get users tile colour
-                  const tileColourRes = await fetch(`http://localhost:8000/user/${user_id}/colour`)
+                  const tileColourRes = await fetch(`https://run.sebgillman.top/user/${user_id}/colour`)
                   if(tileColourRes.ok){
                     tileColour = await tileColourRes.text()
                   } else{
@@ -575,7 +575,9 @@
       </div>
       <script>
         document.addEventListener("DOMContentLoaded", async () => {
-          const res = await fetch("http://localhost:8000/tiles/leaderboard");
+          const res = await fetch(
+            "https://run.sebgillman.top/tiles/leaderboard"
+          );
           if (!res.ok) throw new Error("Failed to get leaderboard");
           const resJson = await res.json();
           console.log("leaderboard", resJson);
