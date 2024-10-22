@@ -139,9 +139,100 @@
         placeholder
       </h1>
 
+      <input
+        type="color"
+        id="colourPicker"
+        name="colourPicker"
+        hidden="true"
+        value=""
+      />
+      <div
+        id="colour-target"
+        class="ml-auto mr-4 login rounded-2xl my-auto p-2"
+        style="font-family: Mondrake; cursor: pointer"
+      >
+        Colour
+      </div>
+
+      <script>
+        let userColour;
+        const colourDiv = document.getElementById("colour-target");
+        const colourPicker = document.getElementById("colourPicker");
+        colourDiv.addEventListener("click", function () {
+          colourPicker.click();
+        });
+
+        function rgbToHex(rgb) {
+          const result = rgb.match(/\d+/g); // Extract RGB components
+          if (result) {
+            return (
+              "#" +
+              (
+                (1 << 24) +
+                (parseInt(result[0]) << 16) +
+                (parseInt(result[1]) << 8) +
+                parseInt(result[2])
+              )
+                .toString(16)
+                .slice(1)
+            );
+          }
+          return null;
+        }
+
+        document.addEventListener("DOMContentLoaded", async function () {
+          const colourRes = await fetch("https://run.sebgillman.top/get-user");
+          if (!colourRes.ok) throw new Error("Colour failed to be retrieved");
+          const colourJson = await colourRes.json();
+          userColour = colourJson.tile_colour;
+
+          // Check if it's in rgb() format, and convert to hex
+          if (userColour.startsWith("rgb")) {
+            userColour = rgbToHex(userColour);
+          }
+
+          // Ensure the color is a valid hex code (e.g., #ff0000)
+          if (/^#[0-9A-F]{6}$/i.test(userColour)) {
+            // Set the color picker and div to the user's current color
+            colourPicker.value = userColour;
+            colourDiv.style.backgroundColor = userColour;
+          } else {
+            console.error("Invalid color format received from server");
+          }
+        });
+
+        colourPicker.addEventListener("input", function () {
+          userColour = colourPicker.value;
+          colourDiv.style.backgroundColor = userColour;
+        });
+
+        // Trigger a fetch request to update the server when the color picker is closed
+        colourPicker.addEventListener("change", async function () {
+          const selectedColor = colourPicker.value; // Get the selected color (hex)
+
+          try {
+            const response = await fetch(
+              "https://run.sebgillman.top/set-user-colour",
+              {
+                method: "PATCH",
+                body: JSON.stringify({ colour: selectedColor }), // Send the selected color as JSON
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error("Failed to update the color on the server");
+            }
+            await response.body.cancel();
+            console.log("Color updated successfully");
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      </script>
+
       <a
         id="logout"
-        class="ml-auto login rounded-2xl my-auto p-2"
+        class="login rounded-2xl my-auto p-2"
         style="font-family: Mondrake; cursor: pointer"
         href="https://run.sebgillman.top?logout=true"
         >Logout</a
@@ -160,7 +251,7 @@
       </script>
     </div>
 
-    <div class="mt-12">
+    <div id="charts" class="mt-12">
       <h1
         class="mx-auto pl-4"
         style="max-width: 1000px; font-family: Mondrake; font-size: xx-large"
