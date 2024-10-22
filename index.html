@@ -244,8 +244,8 @@
         
 </body>
 <script>
-    
-    
+            const renderedTiles = new Set();
+
             var map_25280c96c723246c35b2918a2b89ddb3 = L.map(
                 "map_25280c96c723246c35b2918a2b89ddb3",
                 {
@@ -269,32 +269,51 @@
                 const bottom = Math.floor(bounds["_southWest"]["lat"]);
                 const top = Math.ceil(bounds["_northEast"]["lat"]);
 
-                // Clear existing tiles (needed for dynamic tile resizing)
-                clearExistingTiles();
-
                 //work out what 1 degree tiles to fetch for...
                 for (let x =left;x<right;x++){
                   for (let y=bottom;y<top;y++){
 
+                    if (renderedTiles.has(`${x}-${y}`)){
+                      continue
+                    }
+
                     const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+1, topRightY:y+1})
+                    console.log("http://localhost:8000/tiles/in-range?"+searchParams.toString())
                     const res = fetch("http://localhost:8000/tiles/in-range?"+searchParams.toString())
                         .then(response => response.json())
-                        .then(data => {
-    
+                        .then(async (data)=> {
+                            console.log(data)
                             // Iterate over the returned coordinates and place a tile at each lat/lng
-                            data.tiles.forEach(coords => {
+                            await data.tiles.forEach(async(coords) => {
                                 // coords might be in the form {lat: ..., lng: ...}
-                                placeTileAt(coords.y_index*0.001+0.001, coords.x_index*0.001>180 ? coords.x_index*0.001-360:coords.x_index*0.001);
+                                await placeTileAt(coords.user_id,coords.y_index*0.001+0.001, coords.x_index*0.001>180 ? coords.x_index*0.001-360:coords.x_index*0.001);
                             });
                         })
                         .catch(error => console.error("Error fetching tile coordinates:", error));
+                    renderedTiles.add(`${x}-${y}`)
                   }
+
                 }
             }
 
             //TODO: loggedInUsers tiles get bold outline, and find way to store colour of id for each userId
             // Function to place a custom "tile" (or div) at a lat/lng position
-            function placeTileAt(lat, lng) {
+            async function placeTileAt(user_id, lat, lng) {
+
+                // Check if user_id in localStorage
+                let tileColour = localStorage.getItem(user_id+":colour")
+                console.log(tileColour)
+
+                if (tileColour===null){
+                  // Get users tile colour
+                  const tileColourRes = await fetch(`http://localhost:8000/user/${user_id}/colour`)
+                  if(tileColourRes.ok){
+                    tileColour = await tileColourRes.text()
+                  } else{
+                    tileColour = "rgb(0,0,0,0.5)"
+                  }
+                  localStorage.setItem(user_id+":colour",tileColour)
+                }
 
                 // Convert both points to pixel coordinates using Leaflets latLngToLayerPoint
                 const pixelPoint1 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([lat,lng]);
@@ -307,7 +326,7 @@
                 // Create a div for the tile
                 const tile = L.divIcon({
                     className: "custom-tile",  // Add custom CSS for styling
-                    html: `<div style="width:${pixelDifferenceX}px;height:${pixelDifferenceY}px;background-color:rgba(100,0,100,0.5); border-radius:5px"></div>`,  // Content inside the tile
+                    html: `<div style="width:${pixelDifferenceX}px;height:${pixelDifferenceY}px;background-color:${tileColour}; border-radius:5px; transition: width 0.125s ease, height 0.125s ease;"></div>`,  // Content inside the tile
                     iconSize: [1,1],  // Tile size in pixels
                 });
 
@@ -320,14 +339,55 @@
             map_25280c96c723246c35b2918a2b89ddb3.on("moveend", fetchTileCoordinates);
 
             // Optionally, clear existing tiles to avoid duplicates
-            function clearExistingTiles() {
-                // Remove all markers or tiles added previously
-                map_25280c96c723246c35b2918a2b89ddb3.eachLayer(function (layer) {
-                    if (layer instanceof L.Marker) {
-                        map_25280c96c723246c35b2918a2b89ddb3.removeLayer(layer);
-                    }
-                });
+            //function clearExistingTiles() {
+            //    // Remove all markers or tiles added previously
+            //    map_25280c96c723246c35b2918a2b89ddb3.eachLayer(function (layer) {
+            //        if (layer instanceof L.Marker) {
+            //            map_25280c96c723246c35b2918a2b89ddb3.removeLayer(layer);
+            //        }
+            //    });
+            //}
+
+            function resizeTiles(){
+              map_25280c96c723246c35b2918a2b89ddb3.eachLayer(function (layer){
+                if (layer instanceof L.Marker) {
+
+                  //get lat-lng
+                  const latLng = layer.getLatLng()
+                  console.log(latLng)
+
+                  // Convert both points to pixel coordinates using Leaflets latLngToLayerPoint
+                  const pixelPoint1 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([latLng.lat,latLng.lng]);
+                  const pixelPoint2 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([latLng.lat+0.001,latLng.lng+0.001]);
+                  
+                  // Calculate the pixel difference between the two points
+                  const pixelDifferenceX = Math.abs(pixelPoint1.x - pixelPoint2.x);
+                  const pixelDifferenceY = Math.abs(pixelPoint1.y - pixelPoint2.y);
+  
+                  // Get the DOM element of the current marker
+                  const tileElement = layer.getElement();
+
+                  if (tileElement) {
+                      // Get the inner div of the tile and modify its style
+                      const innerDiv = tileElement.querySelector("div");
+
+                      if (innerDiv) {
+                          // Update width and height directly via style properties
+                          innerDiv.style.width = `${pixelDifferenceX}px`;
+                          innerDiv.style.height = `${pixelDifferenceY}px`;
+                          console.log("Tile resized:", innerDiv);
+                      } else {
+                          console.error("Inner div not found inside tile marker");
+                      }
+                  } else {
+                      console.error("Tile element not found for layer:", layer);
+                  }
+
+                }
+              })
             }
+
+            map_25280c96c723246c35b2918a2b89ddb3.on("zoomend",resizeTiles)
 
             
 

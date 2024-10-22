@@ -9,6 +9,7 @@ import {
   getHTMLDoc,
   getSessionFromCookie,
   refreshTokensIfExpired,
+  tileCache,
 } from "./utils/index.ts";
 import { load } from "https://deno.land/std@0.224.0/dotenv/mod.ts";
 
@@ -55,6 +56,40 @@ app.use(
   })
 );
 
+app.patch(
+  "/set-user-colour",
+  getSessionFromCookie,
+  refreshTokensIfExpired,
+  async (c: Context) => {
+    const userId = c.get("userId");
+    const db: Client = c.get("db");
+    const body = await c.req.json();
+    const colour = body.colour;
+
+    if (!userId) throw new Error("No session cookie");
+    if (!db) throw new Error("Db failed to be retrieved");
+    if (!colour) throw new Error("No colour provided");
+
+    const res = await db.execute({
+      sql: "UPDATE users SET tile_colour = ? WHERE id = ?;",
+      args: [colour, userId],
+    });
+    return c.json(res);
+  }
+);
+
+app.get("/user/:userId/colour", async (c: Context) => {
+  const db: Client = c.get("db");
+  const userId = c.req.param("userId");
+  if (!userId) throw new Error("userId failed to be retrieved from cookie");
+  if (!db) throw new Error("db failed to be retrieved");
+  const userRows = await db.execute({
+    sql: "SELECT tile_colour FROM users WHERE id = ?;",
+    args: [userId],
+  });
+
+  return c.text(userRows.rows[0][0] as string);
+});
 app.get(
   "/get-user",
   getSessionFromCookie,

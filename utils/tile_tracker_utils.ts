@@ -4,18 +4,20 @@ import { TileTrackerCoordPayload } from "../types.ts";
 import { getActivityStream } from "./index.ts";
 import { cache } from "jsr:@hono/hono/cache";
 
+// TODO: Decache tiles in the bounding box of this activity
+// TODO: Consider caching not per user - how to get userId then?, endpoint?
 export async function passActivityToTileTracker(
   c: Context,
   env: Client,
   activityId: number,
-  createdAt: number,
+  createdAt: number
 ) {
   const userId: number = Number(c.get("userId"));
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 
   if (!tileTrackerUrl) {
     console.log(
-      "ERROR: passActivityToTileTracker failed due to missing TILE_TRACKER_URL",
+      "ERROR: passActivityToTileTracker failed due to missing TILE_TRACKER_URL"
     );
     return;
   }
@@ -42,7 +44,7 @@ export async function passActivityToTileTracker(
     console.log(
       "ERROR [passActivityToTileTracker]",
       res.status,
-      res.statusText,
+      res.statusText
     );
     return;
   }
@@ -81,7 +83,6 @@ export async function getTilesWithinBounds(
   topRightX: string,
   topRightY: string
 ): Promise<{
-  user_id: number;
   tiles: {
     x_index: number;
     activity_id: number;
@@ -106,12 +107,9 @@ export async function getTilesWithinBounds(
   return resJson;
 }
 
-export const tileInRangeCache = cache({
+export const tileCache = cache({
   cacheName: "tiles-in-range",
-  cacheControl: "max-age=3600",
+  cacheControl: "max-age=300",
   wait: true,
-  keyGenerator: (c: Context) => {
-    const userId = c.get("userId");
-    return userId ? c.req.url + `user:${userId}` : c.req.url;
-  },
+  keyGenerator: (c: Context) => c.req.url,
 });
