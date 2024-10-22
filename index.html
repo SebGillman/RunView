@@ -333,301 +333,311 @@
             <div class="folium-map" style="height:100%" id="map_25280c96c723246c35b2918a2b89ddb3" >
             </div>
         
-</body>
-<script>
-            const renderedTiles = new Set();
+            </body>
+            <script>
+              let userId;
+              const renderedTiles = new Set();
 
-            var map_25280c96c723246c35b2918a2b89ddb3 = L.map(
-                "map_25280c96c723246c35b2918a2b89ddb3",
-                {
-                    center: [50.72881151098901, -1.8918131868131869],
-                    crs: L.CRS.EPSG3857,
-                    zoom: 14,
-                    zoomControl: true,
-                    preferCanvas: false,
-                }
-            );
+              document.addEventListener("DOMContentLoaded",async function(){
+                const res = await fetch("https://run.sebgillman.top/get-user")
+                if(!res.ok)throw new Error("Failed to get user")
+                const resJson = await res.json()
+                userId = resJson.id
+              })
 
-            map_25280c96c723246c35b2918a2b89ddb3.on("load",fetchTileCoordinates());
+              var map_25280c96c723246c35b2918a2b89ddb3 = L.map(
+                  "map_25280c96c723246c35b2918a2b89ddb3",
+                  {
+                      center: [50.72881151098901, -1.8918131868131869],
+                      crs: L.CRS.EPSG3857,
+                      zoom: 14,
+                      zoomControl: true,
+                      preferCanvas: false,
+                  }
+              );
 
-            // Function to fetch data from your API based on the current map bounds
-            // Render 1 degree by 1 degree 
-            function fetchTileCoordinates() {
-                const bounds = map_25280c96c723246c35b2918a2b89ddb3.getBounds();
+              map_25280c96c723246c35b2918a2b89ddb3.on("load",fetchTileCoordinates());
 
-                const left = Math.floor(bounds["_southWest"]["lng"]);
-                const right = Math.ceil(bounds["_northEast"]["lng"]);
-                const bottom = Math.floor(bounds["_southWest"]["lat"]);
-                const top = Math.ceil(bounds["_northEast"]["lat"]);
+              // Function to fetch data from your API based on the current map bounds
+              // Render 1 degree by 1 degree 
+              function fetchTileCoordinates() {
+                  const bounds = map_25280c96c723246c35b2918a2b89ddb3.getBounds();
 
-                //work out what 1 degree tiles to fetch for...
-                for (let x =left;x<right;x++){
-                  for (let y=bottom;y<top;y++){
+                  const left = Math.floor(bounds["_southWest"]["lng"]);
+                  const right = Math.ceil(bounds["_northEast"]["lng"]);
+                  const bottom = Math.floor(bounds["_southWest"]["lat"]);
+                  const top = Math.ceil(bounds["_northEast"]["lat"]);
 
-                    if (renderedTiles.has(`${x}-${y}`)){
-                      continue
+                  //work out what 1 degree tiles to fetch for...
+                  for (let x =left;x<right;x++){
+                    for (let y=bottom;y<top;y++){
+
+                      if (renderedTiles.has(`${x}-${y}`)){
+                        continue
+                      }
+
+                      const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+1, topRightY:y+1})
+                      console.log("https://run.sebgillman.top/tiles/in-range?"+searchParams.toString())
+                      const res = fetch("https://run.sebgillman.top/tiles/in-range?"+searchParams.toString())
+                          .then(response => response.json())
+                          .then(async (data)=> {
+                              console.log(data)
+                              // Iterate over the returned coordinates and place a tile at each lat/lng
+                              await data.tiles.forEach(async(coords) => {
+                                  // coords might be in the form {lat: ..., lng: ...}
+                                  await placeTileAt(coords.user_id,coords.y_index*0.001+0.001, coords.x_index*0.001>180 ? coords.x_index*0.001-360:coords.x_index*0.001);
+                              });
+                          })
+                          .catch(error => console.error("Error fetching tile coordinates:", error));
+                      renderedTiles.add(`${x}-${y}`)
                     }
 
-                    const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+1, topRightY:y+1})
-                    console.log("https://run.sebgillman.top/tiles/in-range?"+searchParams.toString())
-                    const res = fetch("https://run.sebgillman.top/tiles/in-range?"+searchParams.toString())
-                        .then(response => response.json())
-                        .then(async (data)=> {
-                            console.log(data)
-                            // Iterate over the returned coordinates and place a tile at each lat/lng
-                            await data.tiles.forEach(async(coords) => {
-                                // coords might be in the form {lat: ..., lng: ...}
-                                await placeTileAt(coords.user_id,coords.y_index*0.001+0.001, coords.x_index*0.001>180 ? coords.x_index*0.001-360:coords.x_index*0.001);
-                            });
-                        })
-                        .catch(error => console.error("Error fetching tile coordinates:", error));
-                    renderedTiles.add(`${x}-${y}`)
                   }
+              }
 
-                }
-            }
+              //TODO: loggedInUsers tiles get bold outline, and find way to store colour of id for each userId
+              // Function to place a custom "tile" (or div) at a lat/lng position
+              async function placeTileAt(user_id, lat, lng) {
 
-            //TODO: loggedInUsers tiles get bold outline, and find way to store colour of id for each userId
-            // Function to place a custom "tile" (or div) at a lat/lng position
-            async function placeTileAt(user_id, lat, lng) {
+                  // Check if user_id in localStorage
+                  let tileColour = localStorage.getItem(user_id+":colour")
+                  console.log(tileColour)
 
-                // Check if user_id in localStorage
-                let tileColour = localStorage.getItem(user_id+":colour")
-                console.log(tileColour)
-
-                if (tileColour===null){
-                  // Get users tile colour
-                  const tileColourRes = await fetch(`https://run.sebgillman.top/user/${user_id}/colour`)
-                  if(tileColourRes.ok){
-                    tileColour = await tileColourRes.text()
-                  } else{
-                    tileColour = "rgb(0,0,0,0.5)"
+                  if (tileColour===null){
+                    // Get users tile colour
+                    const tileColourRes = await fetch(`https://run.sebgillman.top/user/${user_id}/colour`)
+                    if(tileColourRes.ok){
+                      tileColour = await tileColourRes.text()
+                    } else{
+                      tileColour = "rgb(0,0,0,0.5)"
+                    }
+                    localStorage.setItem(user_id+":colour",tileColour)
                   }
-                  localStorage.setItem(user_id+":colour",tileColour)
-                }
-
-                // Convert both points to pixel coordinates using Leaflets latLngToLayerPoint
-                const pixelPoint1 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([lat,lng]);
-                const pixelPoint2 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([lat+0.001,lng+0.001]);
-                
-                // Calculate the pixel difference between the two points
-                const pixelDifferenceX = Math.abs(pixelPoint1.x - pixelPoint2.x);
-                const pixelDifferenceY = Math.abs(pixelPoint1.y - pixelPoint2.y);
-
-                // Create a div for the tile
-                const tile = L.divIcon({
-                    className: "custom-tile",  // Add custom CSS for styling
-                    html: `<div style="width:${pixelDifferenceX}px;height:${pixelDifferenceY}px;background-color:${tileColour}; border-radius:5px; transition: width 0.125s ease, height 0.125s ease;"></div>`,  // Content inside the tile
-                    iconSize: [1,1],  // Tile size in pixels
-                });
-
-
-                // Place the tile on the map at the given lat/lng
-                L.marker([lat, lng], { icon: tile }).addTo(map_25280c96c723246c35b2918a2b89ddb3);
-            }
-
-            // Add an event listener to fetch data when the map is panned or zoomed
-            map_25280c96c723246c35b2918a2b89ddb3.on("moveend", fetchTileCoordinates);
-
-            // Optionally, clear existing tiles to avoid duplicates
-            //function clearExistingTiles() {
-            //    // Remove all markers or tiles added previously
-            //    map_25280c96c723246c35b2918a2b89ddb3.eachLayer(function (layer) {
-            //        if (layer instanceof L.Marker) {
-            //            map_25280c96c723246c35b2918a2b89ddb3.removeLayer(layer);
-            //        }
-            //    });
-            //}
-
-            function resizeTiles(){
-              map_25280c96c723246c35b2918a2b89ddb3.eachLayer(function (layer){
-                if (layer instanceof L.Marker) {
-
-                  //get lat-lng
-                  const latLng = layer.getLatLng()
-                  console.log(latLng)
 
                   // Convert both points to pixel coordinates using Leaflets latLngToLayerPoint
-                  const pixelPoint1 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([latLng.lat,latLng.lng]);
-                  const pixelPoint2 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([latLng.lat+0.001,latLng.lng+0.001]);
+                  const pixelPoint1 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([lat,lng]);
+                  const pixelPoint2 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([lat+0.001,lng+0.001]);
                   
                   // Calculate the pixel difference between the two points
                   const pixelDifferenceX = Math.abs(pixelPoint1.x - pixelPoint2.x);
                   const pixelDifferenceY = Math.abs(pixelPoint1.y - pixelPoint2.y);
-  
-                  // Get the DOM element of the current marker
-                  const tileElement = layer.getElement();
 
-                  if (tileElement) {
-                      // Get the inner div of the tile and modify its style
-                      const innerDiv = tileElement.querySelector("div");
 
-                      if (innerDiv) {
-                          // Update width and height directly via style properties
-                          innerDiv.style.width = `${pixelDifferenceX}px`;
-                          innerDiv.style.height = `${pixelDifferenceY}px`;
-                          console.log("Tile resized:", innerDiv);
-                      } else {
-                          console.error("Inner div not found inside tile marker");
-                      }
-                  } else {
-                      console.error("Tile element not found for layer:", layer);
+
+                  // Create a div for the tile
+                  const tile = L.divIcon({
+                      className: "custom-tile",  // Add custom CSS for styling
+                      html: `<div style="width:${pixelDifferenceX}px;height:${pixelDifferenceY}px;background-color:${tileColour}; border-radius:5px; transition: width 0.125s ease, height 0.125s ease;${user_id===userId ? "border-color: gold; border-width: 4px" : ""}"></div>`,  // Content inside the tile
+                      iconSize: [1,1],  // Tile size in pixels
+                  });
+
+
+                  // Place the tile on the map at the given lat/lng
+                  L.marker([lat, lng], { icon: tile }).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+              }
+
+              // Add an event listener to fetch data when the map is panned or zoomed
+              map_25280c96c723246c35b2918a2b89ddb3.on("moveend", fetchTileCoordinates);
+
+              // Optionally, clear existing tiles to avoid duplicates
+              //function clearExistingTiles() {
+              //    // Remove all markers or tiles added previously
+              //    map_25280c96c723246c35b2918a2b89ddb3.eachLayer(function (layer) {
+              //        if (layer instanceof L.Marker) {
+              //            map_25280c96c723246c35b2918a2b89ddb3.removeLayer(layer);
+              //        }
+              //    });
+              //}
+
+              function resizeTiles(){
+                map_25280c96c723246c35b2918a2b89ddb3.eachLayer(function (layer){
+                  if (layer instanceof L.Marker) {
+
+                    //get lat-lng
+                    const latLng = layer.getLatLng()
+                    console.log(latLng)
+
+                    // Convert both points to pixel coordinates using Leaflets latLngToLayerPoint
+                    const pixelPoint1 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([latLng.lat,latLng.lng]);
+                    const pixelPoint2 = map_25280c96c723246c35b2918a2b89ddb3.latLngToLayerPoint([latLng.lat+0.001,latLng.lng+0.001]);
+                    
+                    // Calculate the pixel difference between the two points
+                    const pixelDifferenceX = Math.abs(pixelPoint1.x - pixelPoint2.x);
+                    const pixelDifferenceY = Math.abs(pixelPoint1.y - pixelPoint2.y);
+    
+                    // Get the DOM element of the current marker
+                    const tileElement = layer.getElement();
+
+                    if (tileElement) {
+                        // Get the inner div of the tile and modify its style
+                        const innerDiv = tileElement.querySelector("div");
+
+                        if (innerDiv) {
+                            // Update width and height directly via style properties
+                            innerDiv.style.width = `${pixelDifferenceX}px`;
+                            innerDiv.style.height = `${pixelDifferenceY}px`;
+                            console.log("Tile resized:", innerDiv);
+                        } else {
+                            console.error("Inner div not found inside tile marker");
+                        }
+                    } else {
+                        console.error("Tile element not found for layer:", layer);
+                    }
+
                   }
+                })
+              }
 
-                }
-              })
-            }
+              map_25280c96c723246c35b2918a2b89ddb3.on("zoomend",resizeTiles)
 
-            map_25280c96c723246c35b2918a2b89ddb3.on("zoomend",resizeTiles)
+              
 
-            
+          
+      
+              var tile_layer_41d87743000f11b95160e9201fef61b1 = L.tileLayer(
+                  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                  {"attribution": "CartoDB Positron", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+              ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+          
+              
 
+              
+      
+              var icon_52b5b999c6d948aa02c9e9937f3541c5 = L.AwesomeMarkers.icon(
+                  {"extraClasses": "fa-rotate-0", "icon": "star", "iconColor": "white", "markerColor": "green", "prefix": "glyphicon"}
+              );
+              marker_2b908acf7f9bafb608c6cb0f1b913eba.setIcon(icon_52b5b999c6d948aa02c9e9937f3541c5);
+          
+      
+              marker_2b908acf7f9bafb608c6cb0f1b913eba.bindTooltip(
+                  `<div>
+                      <h5>Start</h5>
+                  </div>`,
+                  {"sticky": true}
+              );
+          
+      
+              
+      
+              var icon_6b933a75f8c3ce8b6e4fa901eb7b8ce5 = L.AwesomeMarkers.icon(
+                  {"extraClasses": "fa-rotate-0", "icon": "flag", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+              );
+              marker_47654cd0a627305b867dc1230f5be311.setIcon(icon_6b933a75f8c3ce8b6e4fa901eb7b8ce5);
+          
+      
+              marker_47654cd0a627305b867dc1230f5be311.bindTooltip(
+                  `<div>
+                      <h5>Finish</h5>
+                  </div>`,
+                  {"sticky": true}
+              );
+          
+      
+              var marker_928e93390f9e3f51e5a9d2db573809be = L.marker(
+                  [50.73131948721307, -1.8937411226583998],
+                  {}
+              ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+          
+      
+              marker_928e93390f9e3f51e5a9d2db573809be.bindTooltip(
+                  `<div>
+                      <h5>KM #1</h5>
+                  </div>`,
+                  {"sticky": true}
+              );
+          
+      
+              var marker_e6067ef3dcd5bc8499d554ba02a9600a = L.marker(
+                  [50.72875658357437, -1.9033340615771257],
+                  {}
+              ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+          
+      
+              marker_e6067ef3dcd5bc8499d554ba02a9600a.bindTooltip(
+                  `<div>
+                      <h5>KM #2</h5>
+                  </div>`,
+                  {"sticky": true}
+              );
+          
+      
+              var marker_35eddd6497250978af20e22afdf67bc8 = L.marker(
+                  [50.729461617636225, -1.9104138251111218],
+                  {}
+              ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+          
+      
+              marker_35eddd6497250978af20e22afdf67bc8.bindTooltip(
+                  `<div>
+                      <h5>KM #3</h5>
+                  </div>`,
+                  {"sticky": true}
+              );
+          
+      
+              var marker_ab3f10e174032aec09a2939e3054d91d = L.marker(
+                  [50.72593844347074, -1.8985316630152775],
+                  {}
+              ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+          
+      
+              marker_ab3f10e174032aec09a2939e3054d91d.bindTooltip(
+                  `<div>
+                      <h5>KM #4</h5>
+                  </div>`,
+                  {"sticky": true}
+              );
+          
+      
+              var marker_25abb53525d91cfa2f0fda390e78212b = L.marker(
+                  [50.722703597946875, -1.8850014538676403],
+                  {}
+              ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+          
+      
+              marker_25abb53525d91cfa2f0fda390e78212b.bindTooltip(
+                  `<div>
+                      <h5>KM #5</h5>
+                  </div>`,
+                  {"sticky": true}
+              );
+          
+      
+              var marker_b35d3236d996982e1e2b82ed9d134e52 = L.marker(
+                  [50.72628140137491, -1.8830576483748604],
+                  {}
+              ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+          
+      
+              marker_b35d3236d996982e1e2b82ed9d134e52.bindTooltip(
+                  `<div>
+                      <h5>KM #6</h5>
+                  </div>`,
+                  {"sticky": true}
+              );
+          
+      
+              var marker_cc7199c635983315a0a25269a133c1d5 = L.marker(
+                  [50.73332027813228, -1.8781298278228722],
+                  {}
+              ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+          
+      
+              marker_cc7199c635983315a0a25269a133c1d5.bindTooltip(
+                  `<div>
+                      <h5>KM #7</h5>
+                  </div>`,
+                  {"sticky": true}
+              );
+          
+      
+              map_25280c96c723246c35b2918a2b89ddb3.fitBounds(
+                  [[50.72164, -1.91071], [50.73895, -1.87757]],
+                  {}
+              );
         
-    
-            var tile_layer_41d87743000f11b95160e9201fef61b1 = L.tileLayer(
-                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-                {"attribution": "CartoDB Positron", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
-            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
-        
-            
-
-            
-    
-            var icon_52b5b999c6d948aa02c9e9937f3541c5 = L.AwesomeMarkers.icon(
-                {"extraClasses": "fa-rotate-0", "icon": "star", "iconColor": "white", "markerColor": "green", "prefix": "glyphicon"}
-            );
-            marker_2b908acf7f9bafb608c6cb0f1b913eba.setIcon(icon_52b5b999c6d948aa02c9e9937f3541c5);
-        
-    
-            marker_2b908acf7f9bafb608c6cb0f1b913eba.bindTooltip(
-                `<div>
-                     <h5>Start</h5>
-                 </div>`,
-                {"sticky": true}
-            );
-        
-    
-            
-    
-            var icon_6b933a75f8c3ce8b6e4fa901eb7b8ce5 = L.AwesomeMarkers.icon(
-                {"extraClasses": "fa-rotate-0", "icon": "flag", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
-            );
-            marker_47654cd0a627305b867dc1230f5be311.setIcon(icon_6b933a75f8c3ce8b6e4fa901eb7b8ce5);
-        
-    
-            marker_47654cd0a627305b867dc1230f5be311.bindTooltip(
-                `<div>
-                     <h5>Finish</h5>
-                 </div>`,
-                {"sticky": true}
-            );
-        
-    
-            var marker_928e93390f9e3f51e5a9d2db573809be = L.marker(
-                [50.73131948721307, -1.8937411226583998],
-                {}
-            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
-        
-    
-            marker_928e93390f9e3f51e5a9d2db573809be.bindTooltip(
-                `<div>
-                     <h5>KM #1</h5>
-                 </div>`,
-                {"sticky": true}
-            );
-        
-    
-            var marker_e6067ef3dcd5bc8499d554ba02a9600a = L.marker(
-                [50.72875658357437, -1.9033340615771257],
-                {}
-            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
-        
-    
-            marker_e6067ef3dcd5bc8499d554ba02a9600a.bindTooltip(
-                `<div>
-                     <h5>KM #2</h5>
-                 </div>`,
-                {"sticky": true}
-            );
-        
-    
-            var marker_35eddd6497250978af20e22afdf67bc8 = L.marker(
-                [50.729461617636225, -1.9104138251111218],
-                {}
-            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
-        
-    
-            marker_35eddd6497250978af20e22afdf67bc8.bindTooltip(
-                `<div>
-                     <h5>KM #3</h5>
-                 </div>`,
-                {"sticky": true}
-            );
-        
-    
-            var marker_ab3f10e174032aec09a2939e3054d91d = L.marker(
-                [50.72593844347074, -1.8985316630152775],
-                {}
-            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
-        
-    
-            marker_ab3f10e174032aec09a2939e3054d91d.bindTooltip(
-                `<div>
-                     <h5>KM #4</h5>
-                 </div>`,
-                {"sticky": true}
-            );
-        
-    
-            var marker_25abb53525d91cfa2f0fda390e78212b = L.marker(
-                [50.722703597946875, -1.8850014538676403],
-                {}
-            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
-        
-    
-            marker_25abb53525d91cfa2f0fda390e78212b.bindTooltip(
-                `<div>
-                     <h5>KM #5</h5>
-                 </div>`,
-                {"sticky": true}
-            );
-        
-    
-            var marker_b35d3236d996982e1e2b82ed9d134e52 = L.marker(
-                [50.72628140137491, -1.8830576483748604],
-                {}
-            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
-        
-    
-            marker_b35d3236d996982e1e2b82ed9d134e52.bindTooltip(
-                `<div>
-                     <h5>KM #6</h5>
-                 </div>`,
-                {"sticky": true}
-            );
-        
-    
-            var marker_cc7199c635983315a0a25269a133c1d5 = L.marker(
-                [50.73332027813228, -1.8781298278228722],
-                {}
-            ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
-        
-    
-            marker_cc7199c635983315a0a25269a133c1d5.bindTooltip(
-                `<div>
-                     <h5>KM #7</h5>
-                 </div>`,
-                {"sticky": true}
-            );
-        
-    
-            map_25280c96c723246c35b2918a2b89ddb3.fitBounds(
-                [[50.72164, -1.91071], [50.73895, -1.87757]],
-                {}
-            );
-        
-</script>
-</html>'
+          </script>
+          </html>'
         >
         </iframe>
       </div>
