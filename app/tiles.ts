@@ -4,12 +4,13 @@ import {
   getTilesWithinBounds,
   tileCache,
 } from "../utils/index.ts";
+import { getSessionFromCookie } from "../utils/auth_utils.ts";
 
 const app = new Hono();
 
-app.get("/leaderboard", async (c: Context) => {
-  const { user_id } = c.req.query();
-  return c.json(await getLeaderboard({ userId: parseInt(user_id) }));
+app.get("/leaderboard", getSessionFromCookie, async (c: Context) => {
+  const userId = c.get("userId");
+  return c.json(await getLeaderboard({ userId: parseInt(userId) }));
 });
 
 app.get("/in-range", async (c: Context) => {
