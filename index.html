@@ -404,20 +404,20 @@
               function fetchTileCoordinates() {
                   const bounds = map_25280c96c723246c35b2918a2b89ddb3.getBounds();
 
-                  const left = Math.floor(bounds["_southWest"]["lng"]);
-                  const right = Math.ceil(bounds["_northEast"]["lng"]);
-                  const bottom = Math.floor(bounds["_southWest"]["lat"]);
-                  const top = Math.ceil(bounds["_northEast"]["lat"]);
+                  const left = Math.floor(bounds["_southWest"]["lng"]*10)/10;
+                  const right = Math.ceil(bounds["_northEast"]["lng"]*10)/10;
+                  const bottom = Math.floor(bounds["_southWest"]["lat"]*10)/10;
+                  const top = Math.ceil(bounds["_northEast"]["lat"]*10)/10;
 
                   //work out what 1 degree tiles to fetch for...
-                  for (let x =left;x<right;x++){
-                    for (let y=bottom;y<top;y++){
+                  for (let x =left;x<right;x+=0.1){
+                    for (let y=bottom;y<top;y+=0.1){
 
                       if (renderedTiles.has(`${x}-${y}`)){
                         continue
                       }
 
-                      const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+1, topRightY:y+1})
+                      const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+0.1, topRightY:y+0.1})
                       const res = fetch("https://run.sebgillman.top/tiles/in-range?"+searchParams.toString())
                           .then(response => response.json())
                           .then(async (data)=> {
