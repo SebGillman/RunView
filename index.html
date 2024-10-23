@@ -404,27 +404,29 @@
               function fetchTileCoordinates() {
                   const bounds = map_25280c96c723246c35b2918a2b89ddb3.getBounds();
 
-                  const left = Math.floor(bounds["_southWest"]["lng"]);
-                  const right = Math.ceil(bounds["_northEast"]["lng"]);
-                  const bottom = Math.floor(bounds["_southWest"]["lat"]);
-                  const top = Math.ceil(bounds["_northEast"]["lat"]);
+                  const tileSize = 4
+
+                  const left = Math.floor(bounds["_southWest"]["lng"]*tileSize)/tileSize;
+                  const right = Math.ceil(bounds["_northEast"]["lng"]*tileSize)/tileSize;
+                  const bottom = Math.floor(bounds["_southWest"]["lat"]*tileSize)/tileSize;
+                  const top = Math.ceil(bounds["_northEast"]["lat"]*tileSize)/tileSize;
 
                   //work out what 1 degree tiles to fetch for...
-                  for (let x =left;x<right;x++){
-                    for (let y=bottom;y<top;y++){
+                  for (let x =left;x<right;x+=1/tileSize){
+                    for (let y=bottom;y<top;y+=1/tileSize){
 
                       if (renderedTiles.has(`${x}-${y}`)){
                         continue
                       }
 
-                      const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+1, topRightY:y+1})
+                      const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+1/tileSize, topRightY:y+1/tileSize})
                       const res = fetch("https://run.sebgillman.top/tiles/in-range?"+searchParams.toString())
                           .then(response => response.json())
                           .then(async (data)=> {
                               // Iterate over the returned coordinates and place a tile at each lat/lng
                               await data.tiles.forEach(async(coords) => {
                                   // coords might be in the form {lat: ..., lng: ...}
-                                  await placeTileAt(coords.user_id,coords.y_index*0.001+0.001, coords.x_index*0.001>180 ? coords.x_index*0.001-360:coords.x_index*0.001);
+                                  await placeTileAt(coords.user_id,coords.y_index*0.001+1/tileSize*0.001, coords.x_index*0.001>180 ? coords.x_index*0.001-360:coords.x_index*0.001);
                               });
                           })
                           .catch(error => console.error("Error fetching tile coordinates:", error));
