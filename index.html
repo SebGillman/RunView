@@ -353,10 +353,10 @@
               const renderedTiles = new Set();
 
               document.addEventListener("DOMContentLoaded",async function(){
-                //const res = await fetch("https://run.sebgillman.top/get-user")
-                //if(!res.ok)throw new Error("Failed to get user")
-                //const resJson = await res.json()
-                //userId = resJson.id
+                const res = await fetch("https://run.sebgillman.top/get-user")
+                if(!res.ok)throw new Error("Failed to get user")
+                const resJson = await res.json()
+                userId = resJson.id
 
 
                 window.addEventListener("message", (event) => {
@@ -404,27 +404,29 @@
               function fetchTileCoordinates() {
                   const bounds = map_25280c96c723246c35b2918a2b89ddb3.getBounds();
 
-                  const left = Math.floor(bounds["_southWest"]["lng"]);
-                  const right = Math.ceil(bounds["_northEast"]["lng"]);
-                  const bottom = Math.floor(bounds["_southWest"]["lat"]);
-                  const top = Math.ceil(bounds["_northEast"]["lat"]);
+                  const tileSize = 4
+
+                  const left = Math.floor(bounds["_southWest"]["lng"]*tileSize)/tileSize;
+                  const right = Math.ceil(bounds["_northEast"]["lng"]*tileSize)/tileSize;
+                  const bottom = Math.floor(bounds["_southWest"]["lat"]*tileSize)/tileSize;
+                  const top = Math.ceil(bounds["_northEast"]["lat"]*tileSize)/tileSize;
 
                   //work out what 1 degree tiles to fetch for...
-                  for (let x =left;x<right;x++){
-                    for (let y=bottom;y<top;y++){
+                  for (let x =left;x<right;x+=1/tileSize){
+                    for (let y=bottom;y<top;y+=1/tileSize){
 
                       if (renderedTiles.has(`${x}-${y}`)){
                         continue
                       }
 
-                      const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+1, topRightY:y+1})
+                      const searchParams = new URLSearchParams({bottomLeftX:x, bottomLeftY:y, topRightX:x+1/tileSize, topRightY:y+1/tileSize})
                       const res = fetch("https://run.sebgillman.top/tiles/in-range?"+searchParams.toString())
                           .then(response => response.json())
                           .then(async (data)=> {
                               // Iterate over the returned coordinates and place a tile at each lat/lng
                               await data.tiles.forEach(async(coords) => {
                                   // coords might be in the form {lat: ..., lng: ...}
-                                  await placeTileAt(coords.user_id,coords.y_index*0.001+0.001, coords.x_index*0.001>180 ? coords.x_index*0.001-360:coords.x_index*0.001);
+                                  await placeTileAt(coords.user_id,coords.y_index*0.001+1/tileSize*0.001, coords.x_index*0.001>180 ? coords.x_index*0.001-360:coords.x_index*0.001);
                               });
                           })
                           .catch(error => console.error("Error fetching tile coordinates:", error));
@@ -464,7 +466,7 @@
                     if(tileColourRes.ok){
                       tileColour = await tileColourRes.text()
                     } else{
-                      tileColour = "rgb(0,0,0,0.5)"
+                      tileColour = "rgb(100,100,100,0.5)"
                     }
                     localStorage.setItem(user_id+":colour",tileColour)
                   }
@@ -482,7 +484,7 @@
                   // Create a div for the tile
                   const tile = L.divIcon({
                       className: "custom-tile",  // Add custom CSS for styling
-                      html: `<div user-id="${user_id}" style="width:${pixelDifferenceX}px;height:${pixelDifferenceY}px;background-color:${addAlpha(tileColour)}; border-radius:5px; transition: width 0.125s ease, height 0.125s ease;${user_id===userId ? "border-color: gold; border-width: 1px; border-style: dashed;" : ""}"></div>`,  // Content inside the tile
+                      html: `<div user-id="${user_id}" style="width:${pixelDifferenceX}px;height:${pixelDifferenceY}px;background-color:${addAlpha(tileColour)}; border-radius:5px; transition: width 0.125s ease, height 0.125s ease;transform: translateZ(0);${user_id===userId ? "border-color: gold; border-width: 1px; border-style: dashed;" : ""}"></div>`,  // Content inside the tile
                       iconSize: [1,1],  // Tile size in pixels
                   });
 
