@@ -27,15 +27,24 @@
       }
       .nav {
         border-radius: 10px;
-        border: 5px, solid, #57481f;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #57481f;
         font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
-        width: 100%;
+        width: 98%;
         height: 15%;
         max-width: 1000px;
         justify-content: center;
         justify-items: center;
         margin: auto auto auto auto;
         overflow: hidden;
+      }
+      .chart {
+        border-radius: 10px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #57481f;
+        font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
       }
       .login {
         border-style: solid;
@@ -48,7 +57,9 @@
       }
       .footer {
         border-radius: 10px;
-        border: 5px, solid, rgb(52, 19, 1);
+        border-width: 5px;
+        border-style: solid;
+        border-color: rgb(52, 19, 1);
         background-color: rgb(144, 51, 2);
         box-shadow: 5px 5px rgb(52, 19, 1);
         width: 100%;
@@ -95,7 +106,7 @@
       }
     </style>
   </head>
-  <body style="justify-items: center; background-color: papayawhip">
+  <body style="background-color: papayawhip; width: 98%; overflow: visible">
     <nav class="nav fixed-navbar shadow-md" style="font-family: Mondrake">
       <div class="flex container mx-auto h-full w-full justify-evenly">
         <a class="flex" href="https://sebgillman.top">
@@ -121,7 +132,7 @@
 
     <div
       id="user"
-      class="mt-12 h-1/8 flex mx-auto"
+      class="mt-12 h-1/8 flex flex-col sm:flex-row mx-auto w-full"
       style="
         justify-content: space-evenly;
         font-family: Mondrake;
@@ -141,21 +152,32 @@
         placeholder
       </h1>
 
+      <div class="flex justify-left pl-4">
+        <div
+          id="colour-target"
+          class="login mr-4 rounded-2xl my-auto p-2"
+          style="font-family: Mondrake; cursor: pointer"
+        >
+          Colour
+        </div>
+
+        <a
+          id="logout"
+          class="login rounded-2xl my-auto p-2"
+          style="font-family: Mondrake; cursor: pointer"
+          href="https://run.sebgillman.top?logout=true"
+          >Logout</a
+        >
+      </div>
       <input
         type="color"
         id="colourPicker"
         name="colourPicker"
         hidden="true"
         value=""
+        width="0"
+        height="0"
       />
-      <div
-        id="colour-target"
-        class="ml-auto mr-4 login rounded-2xl my-auto p-2"
-        style="font-family: Mondrake; cursor: pointer"
-      >
-        Colour
-      </div>
-
       <script>
         let userId;
         let userColour;
@@ -249,15 +271,6 @@
           );
         }
       </script>
-
-      <a
-        id="logout"
-        class="login rounded-2xl my-auto p-2"
-        style="font-family: Mondrake; cursor: pointer"
-        href="https://run.sebgillman.top?logout=true"
-        >Logout</a
-      >
-
       <script>
         document.addEventListener("DOMContentLoaded", async () => {
           const res = await fetch("https://run.sebgillman.top/get-user");
@@ -271,7 +284,7 @@
       </script>
     </div>
 
-    <div id="charts" class="mt-12">
+    <div id="charts" class="mt-12 w-full">
       <h1
         class="mx-auto pl-4"
         style="max-width: 1000px; font-family: Mondrake; font-size: xx-large"
@@ -280,27 +293,27 @@
       </h1>
       <div
         id="charts-container"
-        class="login mx-auto rounded-2xl w-full h-2/3 flex"
+        class="login mx-auto rounded-2xl h-full sm:h-1/2 w-full p-4 sm:p-8 flex flex-col sm:flex-row justify-evenly"
       >
         <div
           id="weekly-distance-parent"
-          class="nav mx-auto my-14 rounded-2xl overflow-hidden"
-          style="width: 40%; height: 66%; background-color: #f6d989"
+          class="chart h-1/2 sm:h-full w-auto rounded-2xl overflow-hidden mb-4 sm:mb-0"
+          style="background-color: #f6d989"
         >
           <canvas id="weekly-distance"></canvas>
         </div>
 
         <div
           id="current-year-parent"
-          class="nav mx-auto my-14 rounded-2xl overflow-hidden"
-          style="width: 40%; height: 66%; background-color: #f6d989"
+          class="chart h-1/2 sm:h-full w-auto rounded-2xl overflow-hidden"
+          style="background-color: #f6d989"
         >
           <canvas id="current-year"></canvas>
         </div>
       </div>
     </div>
 
-    <div class="my-14">
+    <div class="my-14 w-full">
       <h1
         class="mx-auto pl-4"
         style="max-width: 1000px; font-family: Mondrake; font-size: xx-large"
@@ -704,7 +717,7 @@
         </iframe>
       </div>
     </div>
-    <div id="leaderboard-container" class="my-14">
+    <div id="leaderboard-container" class="my-14 w-full">
       <h1
         class="mx-auto pl-4"
         style="max-width: 1000px; font-family: Mondrake; font-size: xx-large"
@@ -756,6 +769,29 @@
             for (const user of resJson.leaderboard) {
               const newRow = document.createElement("div");
               newRow.setAttribute("class", "flex justify-evenly");
+              if (user.user_id === resJson.user.user_id) {
+                newRow.setAttribute(
+                  "style",
+                  "background-colour:rgb(240,255,255);font-weight:700"
+                );
+              }
+
+              for (const prop of ["rank", "user_id", "score"]) {
+                const child = document.createElement("h2");
+                child.setAttribute("class", "text-center");
+                child.setAttribute(
+                  "style",
+                  "font-family: Mondrake; width:25%;"
+                );
+                child.innerText = `${user[prop]}`;
+                newRow.appendChild(child);
+              }
+              parent.appendChild(newRow);
+            }
+          } else {
+            for (const user of resJson.leaderboard) {
+              const newRow = document.createElement("div");
+              newRow.setAttribute("class", "flex justify-evenly");
 
               for (const prop of ["rank", "user_id", "score"]) {
                 const child = document.createElement("h2");
@@ -766,7 +802,22 @@
               }
               parent.appendChild(newRow);
             }
-          } else {
+
+            if (!!resJson?.user) {
+              const newRow = document.createElement("div");
+              newRow.setAttribute("class", "flex justify-evenly");
+              for (const prop of ["rank", "user_id", "score"]) {
+                const child = document.createElement("h2");
+                child.setAttribute("class", "text-center");
+                child.setAttribute(
+                  "style",
+                  "font-family: Mondrake; width:25%; background-colour:rgb(240,255,255); font-weight:700"
+                );
+                child.innerText = `${user[prop]}`;
+                newRow.appendChild(child);
+              }
+              parent.appendChild(newRow);
+            }
           }
         });
       </script>
