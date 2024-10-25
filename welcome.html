@@ -28,9 +28,11 @@
       }
       .nav {
         border-radius: 10px;
-        border: 5px, solid, #57481f;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #57481f;
         font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
-        width: 100%;
+        width: 98%;
         height: 15%;
         max-width: 1000px;
         justify-content: center;
@@ -49,7 +51,9 @@
       }
       .footer {
         border-radius: 10px;
-        border: 5px, solid, rgb(52, 19, 1);
+        border-width: 5px;
+        border-style: solid;
+        border-color: rgb(52, 19, 1);
         background-color: rgb(144, 51, 2);
         box-shadow: 5px 5px rgb(52, 19, 1);
         width: 100%;
@@ -96,7 +100,10 @@
       }
     </style>
   </head>
-  <body class="flex flex-col" style="background-color: papayawhip">
+  <body
+    class="flex flex-col mx-auto"
+    style="background-color: papayawhip; margin: 0 1%; overflow: visible"
+  >
     <!-- background="assets/wild-sea.png" -->
     <nav class="nav fixed-navbar shadow-md" style="font-family: Mondrake">
       <div class="flex container mx-auto h-full w-full justify-evenly">
