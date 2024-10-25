@@ -5,7 +5,6 @@ import { getActivityStream } from "./index.ts";
 import { cache } from "jsr:@hono/hono/cache";
 
 // TODO: Decache tiles in the bounding box of this activity
-// TODO: Consider caching not per user - how to get userId then?, endpoint?
 export async function passActivityToTileTracker(
   c: Context,
   env: Client,
