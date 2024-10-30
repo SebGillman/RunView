@@ -131,7 +131,10 @@ app.get(
 
       if (!docHtmlText) throw new Error("Failed to obtain document html");
 
-      return c.html(docHtmlText);
+      const doctype = "<!DOCTYPE html>";
+      const fullHtml = doctype + docHtmlText;
+
+      return c.html(fullHtml);
     } catch (error) {
       console.error(error);
       return c.redirect("/auth/login");
