@@ -10,19 +10,22 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
+      id="echarts-preconnect"
       rel="preconnect"
-      href="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"
+      href="https://cdn.jsdelivr.net"
+      crossorigin
     />
     <link
       rel="preload"
       href="assets/tailwind.min.css"
       as="style"
-      onload="this.onload=null;this.rel='stylesheet'"
+      onload="this.onload=null;this.rel='stylesheet';"
     />
     <noscript
       ><link rel="stylesheet" href="assets/tailwind.min.css"
     /></noscript>
     <script
+      id="echarts"
       src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"
       async
     ></script>
@@ -70,6 +73,18 @@
         border-style: solid;
         border-color: #57481f;
         font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+        height: 66%;
+      }
+      .chart-container {
+        margin-left: auto;
+        margin-right: auto;
+        border-radius: 16px;
+        height: 100vh;
+        width: 100%;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
       }
       .login {
         border-style: solid;
@@ -98,6 +113,17 @@
       }
 
       @media (min-width: 640px) {
+        .chart {
+          height: 100%;
+        }
+        .chart-container {
+          height: 50vh;
+          padding: 32px;
+          flex-direction: row;
+        }
+        .flex-direction {
+          flex-direction: row;
+        }
         .nav-text {
           font-size: 1.125rem;
         }
@@ -133,12 +159,6 @@
 
       .flex-direction {
         flex-direction: column;
-      }
-
-      @media (min-width: 640px) {
-        .flex-direction {
-          flex-direction: row;
-        }
       }
     </style>
   </head>
@@ -805,13 +825,10 @@
       >
         Charts
       </h1>
-      <div
-        id="charts-container"
-        class="login mx-auto rounded-2xl h-full sm:h-1/2 w-full p-4 sm:p-8 flex flex-col sm:flex-row justify-evenly"
-      >
+      <div id="charts-container" class="login chart-container">
         <div
           id="weekly-distance-parent"
-          class="chart w-full sm:w-1/2 h-2/3 sm:h-full w-auto rounded-2xl overflow-hidden mb-4 sm:mb-0 sm:mr-2"
+          class="chart w-full sm:w-1/2 w-auto rounded-2xl overflow-hidden mb-4 sm:mb-0 sm:mr-2"
           style="background-color: #f6d989"
         >
           <canvas id="weekly-distance"></canvas>
@@ -819,14 +836,13 @@
 
         <div
           id="current-year-parent"
-          class="chart w-full sm:w-1/2 h-2/3 sm:h-full w-auto rounded-2xl overflow-hidden sm:ml-2"
+          class="chart w-full sm:w-1/2 w-auto rounded-2xl overflow-hidden sm:ml-2"
           style="background-color: #f6d989"
         >
           <canvas id="current-year"></canvas>
         </div>
       </div>
     </div>
-
     <footer class="flex w-screen h-40 footer" style="margin-top: 48px">
       <img
         class="center"
