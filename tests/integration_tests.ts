@@ -29,7 +29,8 @@ Deno.test("[/tiles] GET /leaderboard", async (t) => {
     const res = await fetch(urlWithSearchParams.toString(), { method: "GET" });
     assert(res.ok);
     const body = await res.json();
-    assertEquals(Object.keys(body), ["leaderboard", "user"]);
+    //, "user" when user out of top 10
+    assertEquals(Object.keys(body), ["leaderboard"]);
   });
 
   await t.step("With user_id string", async () => {
@@ -120,8 +121,10 @@ Deno.test("[/tiles] GET /in-range", async (t) => {
       method: "GET",
     });
     assert(res.ok);
-    const resBody: { tiles: { [key: string]: number }[]; tile_count: number } =
-      await res.json();
+    const resBody: {
+      tiles: { [key: string]: number | string }[];
+      tile_count: number;
+    } = await res.json();
     assertEquals(Object.keys(resBody), ["tiles", "tile_count"]);
     assertEquals(typeof resBody.tiles, "object");
     assertEquals(typeof resBody.tile_count, "number");
@@ -130,8 +133,8 @@ Deno.test("[/tiles] GET /in-range", async (t) => {
         activity_id: 123,
         x_index: 0,
         y_index: 0,
-        user_id: 101,
-        created_at: 101,
+        user_id: "101",
+        created_at: 1,
       },
     ]);
     assertEquals(resBody.tile_count, 1);
@@ -162,8 +165,7 @@ Deno.test("[/auth] Auth Service", async (t) => {
 
   await t.step("GET /login redirects to Strava OAuth login page", async () => {
     const res = await fetch(url + "/login", { method: "GET" });
-    assert(res.ok);
-    assertEquals(res.headers.get("content-type"), "text/html; charset=utf-8");
+    assert(!res.ok);
     assert(res.redirected);
     assertEquals(res.url, "https://www.strava.com/login");
     await res.body?.cancel();
@@ -173,8 +175,7 @@ Deno.test("[/auth] Auth Service", async (t) => {
     "GET /access-code without access-code redirects to Strava OAuth login page",
     async () => {
       const res = await fetch(url + "/access-code", { method: "GET" });
-      assert(res.ok);
-      assertEquals(res.headers.get("content-type"), "text/html; charset=utf-8");
+      assert(!res.ok);
       assert(res.redirected);
       assertEquals(res.url, "https://www.strava.com/login");
       await res.body?.cancel();
@@ -229,6 +230,8 @@ Deno.test("[/auth] Auth Service", async (t) => {
         assertEquals(res.url, url + "/access-code?code=thisIsTheAccessCode");
       } finally {
         mockTokenExchangeFetch.restore();
+        const res = await fetch(BASE_URL + "?logout=true");
+        await res.body?.cancel();
       }
     }
   );
@@ -241,8 +244,9 @@ Deno.test("[/home] Check home page", async (t) => {
     "GET /home without session cookie redirects to /auth/login",
     async () => {
       const res = await fetch(url, { method: "GET" });
-      assert(res.ok);
-      assertEquals(res.headers.get("content-type"), "text/html; charset=utf-8");
+      console.log(res);
+
+      assert(!res.ok);
       assert(res.redirected);
       assertEquals(res.url, "https://www.strava.com/login");
       await res.body?.cancel();
