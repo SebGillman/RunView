@@ -80,7 +80,8 @@ export async function getTilesWithinBounds(
   bottomLeftX: string,
   bottomLeftY: string,
   topRightX: string,
-  topRightY: string
+  topRightY: string,
+  gameId: string
 ): Promise<{
   tiles: {
     x_index: number;
@@ -98,6 +99,9 @@ export async function getTilesWithinBounds(
   url.searchParams.append("y1", `${bottomLeftY}`);
   url.searchParams.append("x2", `${topRightX}`);
   url.searchParams.append("y2", `${topRightY}`);
+  if (gameId) {
+    url.searchParams.append("game_id", `${gameId}`);
+  }
 
   const res = await fetch(url.toString(), { method: "GET" });
 
