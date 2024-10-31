@@ -58,7 +58,7 @@ export async function getTokenExchange(
           code: accessCode,
           grant_type: "authorization_code", //todo
         }),
-      },
+      }
     );
     if (!tokenExchange.ok) {
       await tokenExchange.text();
@@ -97,7 +97,7 @@ export async function getTokenExchange(
 
 export async function refreshTokensIfExpired(
   c: Context,
-  next: () => Promise<void>,
+  next: () => Promise<void>
 ): Promise<void> {
   const env: Client = c.get("env");
 
@@ -128,7 +128,7 @@ export async function refreshTokensIfExpired(
         refresh_token: REFRESH_TOKEN,
         grant_type: "refresh_token",
       }),
-    },
+    }
   );
 
   if (!refreshResponse.ok) throw new Error("Refresh Failed!");
@@ -152,9 +152,11 @@ export async function refreshTokensIfExpired(
 
 export async function getEnvVar(c: Context, env: Client, column: string) {
   const userId = c.get("userId");
+  if (!userId) throw new Error("Missing userId");
+  console.log(userId);
   const res = (
     await env.execute(
-      `SELECT * FROM "users_strava_auth" WHERE id = '${userId}';`,
+      `SELECT * FROM "users_strava_auth" WHERE id = '${userId}';`
     )
   ).rows[0][column] as string;
   // console.log(`Var ${column} is ${res}`);
@@ -165,12 +167,12 @@ export async function getEnvVar(c: Context, env: Client, column: string) {
 this will cause failures with login, handle gracefully*/
 export const getSessionFromCookie = async (
   c: Context,
-  next: () => Promise<void>,
+  next: () => Promise<void>
 ) => {
   const cookieHeader = c.req.header("Cookie");
   if (cookieHeader) {
     const cookies = Object.fromEntries(
-      cookieHeader.split("; ").map((c) => c.split("=")),
+      cookieHeader.split("; ").map((c) => c.split("="))
     );
     const sessionId = cookies["session_id"];
     c.set("userId", sessionId);
@@ -180,21 +182,21 @@ export const getSessionFromCookie = async (
 
 export const setSessionCookie = async (
   c: Context,
-  next: () => Promise<void>,
+  next: () => Promise<void>
 ) => {
   console.log("setsession start");
   const sessionId = c.get("userId");
   if (!sessionId) return await next();
   c.header(
     "Set-Cookie",
-    `session_id=${sessionId}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax;Path=/`,
+    `session_id=${sessionId}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax;Path=/`
   );
   return await next();
 };
 
 export const getSessionFromHeader = async (
   c: Context,
-  next: () => Promise<void>,
+  next: () => Promise<void>
 ) => {
   const userId = c.req.header("userId");
   if (!userId) throw new Error("No user Id.");
