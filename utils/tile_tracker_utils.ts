@@ -55,6 +55,7 @@ export async function getLeaderboard(options: {
   userId?: number;
   limit?: number;
   offset?: number;
+  gameId?: number;
 }) {
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 
@@ -67,6 +68,9 @@ export async function getLeaderboard(options: {
   }
   if (options.userId !== undefined && !isNaN(options.userId)) {
     url.searchParams.append("user_id", `${options.userId}`);
+  }
+  if (options.gameId !== undefined && !isNaN(options.gameId)) {
+    url.searchParams.append("game_id", `${options.gameId}`);
   }
 
   const res = await fetch(url.toString(), {

@@ -103,8 +103,6 @@ export function barChart(
         const chart_ref_${nameWithoutDashes} = document.getElementById("${chartName}");
         const parent_ref_${nameWithoutDashes} = chart_ref_${nameWithoutDashes}?.parentElement;
         
-        console.log("PARENT",parent_ref_${nameWithoutDashes})
-        console.log("STATE",document.readyState)
         if (document.readyState !== "loading"){
             const chartScript = document.createElement("script");
             chartScript.textContent = \`${chartScriptText}\`;

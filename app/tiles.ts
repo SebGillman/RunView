@@ -27,8 +27,14 @@ app.get("/game-teams", async (c: Context) => {
 });
 
 app.get("/leaderboard", getSessionFromCookie, async (c: Context) => {
+  const game_id = c.req.query("game_id") || "1";
   const userId = c.get("userId");
-  return c.json(await getLeaderboard({ userId: parseInt(userId) }));
+  return c.json(
+    await getLeaderboard({
+      userId: parseInt(userId),
+      gameId: parseInt(game_id),
+    })
+  );
 });
 
 app.get("/in-range", async (c: Context) => {
