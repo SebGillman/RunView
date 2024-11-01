@@ -462,11 +462,11 @@
         const rerender_leaderboard_leaderboardScriptReplacement =
           document.createElement("script");
         rerender_leaderboard_leaderboardScriptReplacement.id =
-          leaderboardScript;
-        rerender_leaderboard_leaderboardScriptReplacement.innerText =
-          rerender_leaderboard_leaderboardScript.innerText;
+          "leaderboardScript";
+        rerender_leaderboard_leaderboardScriptReplacement.innerText = `${rerender_leaderboard_leaderboardScript.innerText}`;
 
-        // Replace the old script with the new script in the DOM
+        // Replace the old script with the new script in the DOM;
+
         rerender_leaderboard_leaderboardScript.parentNode.replaceChild(
           rerender_leaderboard_leaderboardScriptReplacement,
           rerender_leaderboard_leaderboardScript
