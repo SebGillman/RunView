@@ -153,7 +153,6 @@ export async function refreshTokensIfExpired(
 export async function getEnvVar(c: Context, env: Client, column: string) {
   const userId = c.get("userId");
   if (!userId) throw new Error("Missing userId");
-  console.log(userId);
   const res = (
     await env.execute(
       `SELECT * FROM "users_strava_auth" WHERE id = '${userId}';`
