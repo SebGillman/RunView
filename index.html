@@ -432,6 +432,87 @@
       }
     </script>
     <script id="rerender-leaderboard">
+      const leaderboardScriptCode = `
+          async function renderLeaderboard() {
+        const res = await fetch(
+          \`https://run.sebgillman.top/tiles/leaderboard?game_id=\${window.game_id}\`
+        );
+        if (!res.ok) throw new Error("Failed to get leaderboard");
+        const resJson = await res.json();
+
+        const parent = document.getElementById("leaderboard-target");
+
+        if (
+          !!resJson?.user &&
+          resJson.leaderboard.some(
+            (user) => user.user_id === resJson.user.user_id
+          )
+        ) {
+          console.log("USER & USER IN TOP 10");
+          for (const user of resJson.leaderboard) {
+            const newRow = document.createElement("div");
+            newRow.setAttribute("class", "flex justify-evenly rounded-2xl");
+            console.log(user.user_id, resJson.user.user_id);
+            if (user.user_id === resJson.user.user_id) {
+              newRow.setAttribute(
+                "style",
+                "background-color:rgb(144, 51, 2,0.75);font-weight:700"
+              );
+            }
+
+            for (const prop of ["rank", "user_id", "score"]) {
+              const child = document.createElement("h2");
+              child.setAttribute("class", "text-center");
+              child.setAttribute("style", "font-family: Mondrake; width:25%;");
+              child.innerText = \`\${user[prop]}\`;
+              newRow.appendChild(child);
+            }
+            parent.appendChild(newRow);
+          }
+        } else {
+          // CREATE LEADERBOARD
+          for (const user of resJson.leaderboard) {
+            const newRow = document.createElement("div");
+            newRow.setAttribute("class", "flex justify-evenly rounded-2xl");
+
+            for (const prop of ["rank", "user_id", "score"]) {
+              const child = document.createElement("h2");
+              child.setAttribute("class", "text-center");
+              child.setAttribute("style", "font-family: Mondrake; width:25%");
+              child.innerText = \`\${user[prop]}\`;
+              newRow.appendChild(child);
+            }
+            parent.appendChild(newRow);
+          }
+          // THEN ADD USER
+          if (!!resJson?.user) {
+            const newRow = document.createElement("div");
+            newRow.setAttribute("class", "flex justify-evenly rounded-2xl");
+            newRow.setAttribute(
+              "style",
+              "background-color:rgb(144, 51, 2, 0.75); font-weight:700"
+            );
+            for (const prop of ["rank", "user_id", "score"]) {
+              const child = document.createElement("h2");
+              child.setAttribute("class", "text-center");
+              child.setAttribute("style", "font-family: Mondrake; width:25%; ");
+              child.innerText = \`\${resJson.user[prop]}\`;
+              newRow.appendChild(child);
+            }
+            parent.appendChild(newRow);
+          }
+        }
+      }
+
+      if (document.readyState == "complete") {
+        renderLeaderboard();
+      } else {
+        document.addEventListener("DOMContentLoaded", async () => {
+          await renderLeaderboard();
+        });
+      }
+      `;
+
       function rerenderLeaderboard() {
         const rerender_leaderboard_leaderboardElement =
           document.getElementById("leaderboard-target");
@@ -458,15 +539,15 @@
         const rerender_leaderboard_leaderboardScript =
           document.getElementById("leaderboardScript");
         rerender_leaderboard_leaderboardScript.innerText =
-          rerender_leaderboard_leaderboardScript.innerText;
+          leaderboardScriptCode;
         const rerender_leaderboard_leaderboardScriptReplacement =
           document.createElement("script");
         rerender_leaderboard_leaderboardScriptReplacement.id =
-          leaderboardScript;
-        rerender_leaderboard_leaderboardScriptReplacement.innerText =
-          rerender_leaderboard_leaderboardScript.innerText;
+          "leaderboardScript";
+        rerender_leaderboard_leaderboardScriptReplacement.innerText = `${rerender_leaderboard_leaderboardScript.innerText}`;
 
-        // Replace the old script with the new script in the DOM
+        // Replace the old script with the new script in the DOM;
+
         rerender_leaderboard_leaderboardScript.parentNode.replaceChild(
           rerender_leaderboard_leaderboardScriptReplacement,
           rerender_leaderboard_leaderboardScript
