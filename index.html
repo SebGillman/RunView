@@ -120,6 +120,43 @@
         font-weight: 400;
         font-size: 0.75rem; /* Default size */
       }
+      .flex-direction {
+        flex-direction: column;
+      }
+
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5); /* Black with opacity */
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* Modal Content */
+      .modal-content {
+        background-color: #fff;
+        padding: 20px;
+        margin-top: 40px;
+        border-radius: 16px;
+        width: 66vw;
+        height: 66vh;
+        text-align: center;
+        position: relative;
+      }
+
+      /* Close Button */
+      .close {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 24px;
+        cursor: pointer;
+      }
 
       @media (min-width: 640px) {
         .chart {
@@ -164,10 +201,6 @@
         src: url("assets/Kaffe-Regular.otf") format("truetype"); /* Point to where the .ttf is located */
         font-weight: normal;
         font-style: normal;
-      }
-
-      .flex-direction {
-        flex-direction: column;
       }
     </style>
   </head>
@@ -246,10 +279,9 @@
         margin-right: auto;
       "
     ></div>
-
     <div
       id="welcome-user"
-      class="flex-dir"
+      class="flex-direction"
       style="
         justify-content: space-evenly;
         font-family: Mondrake;
@@ -559,23 +591,249 @@
     <div
       id="game-select-section"
       style="
-        width: 100%;
+        width: 98%;
         margin-left: auto;
         margin-right: auto;
         margin-top: 48px;
+        display: flex;
+        flex-direction: column;
       "
     >
-      <h1
-        style="
-          max-width: 1000px;
-          font-family: Mondrake;
-          font-size: xx-large;
-          margin: 0 auto;
-          padding-left: 16px;
-        "
-      >
-        Your Games
-      </h1>
+      <div id="game-select-header" style="display: flex" class="flex-direction">
+        <h1
+          style="
+            max-width: 1000px;
+            font-family: Mondrake;
+            font-size: xx-large;
+            /* margin: 0 auto; */
+            padding-left: 16px;
+            margin-right: auto;
+          "
+        >
+          Your Games
+        </h1>
+
+        <div style="display: flex; justify-content: left; padding-left: 16px">
+          <div
+            id="manage-game"
+            class="login"
+            style="
+              font-family: Mondrake;
+              cursor: pointer;
+              margin-right: 16px;
+              margin-top: auto;
+              margin-bottom: auto;
+              padding: 8px;
+              border-radius: 16px;
+            "
+          >
+            Manage Game
+          </div>
+          <div
+            id="create-game"
+            class="login"
+            style="
+              font-family: Mondrake;
+              cursor: pointer;
+              margin-right: 16px;
+              margin-top: auto;
+              margin-bottom: auto;
+              padding: 8px;
+              border-radius: 16px;
+            "
+          >
+            Create Game
+          </div>
+          <div
+            id="join-game"
+            class="login"
+            style="
+              font-family: Mondrake;
+              cursor: pointer;
+              margin-right: 16px;
+              margin-top: auto;
+              margin-bottom: auto;
+              padding: 8px;
+              border-radius: 16px;
+            "
+          >
+            Join Game
+          </div>
+        </div>
+      </div>
+
+      <script id="create-game-script">
+        document.addEventListener("DOMContentLoaded", function () {
+          const createGameElement = document.getElementById("create-game");
+          const createGameModal = document.getElementById("create-game-modal");
+          const createGameModalCloseButton = document.getElementById(
+            "create-game-modal-close"
+          );
+          const createGameModalSubmitButton = document.getElementById(
+            "create-game-modal-submit"
+          );
+          const createGameModalGameName = document.getElementById(
+            "create-game-modal-game-name"
+          );
+          const createGameModalTeamsCheckbox = document.getElementById(
+            "create-game-modal-teams-checkbox"
+          );
+          const createGameModalTeamNamesContainer = document.getElementById(
+            "create-game-modal-team-names-container"
+          );
+          const createGameModalTeamNamesDiv = document.getElementById(
+            "create-game-modal-team-names"
+          );
+          const createGameModalAddTeamButton = document.getElementById(
+            "create-game-modal-add-team"
+          );
+          const createGameModalTeamPickerContainer = document.getElementById(
+            "create-game-modal-pick-team-container"
+          );
+          const createGameModalTeamPicker = document.getElementById(
+            "create-game-modal-pick-team"
+          );
+
+          function resetCreateModal() {
+            createGameModalGameName.value = "";
+            createGameModalTeamsCheckbox.checked = false;
+
+            createGameModalTeamNamesDiv.replaceChildren();
+            createGameModalTeamNamesDiv.innerHTML = `
+                  <input
+                    type="text"
+                    name="create-game-modal-team-name"
+                    placeholder="Enter team name"
+                  />`;
+            createGameModalTeamPicker.replaceChildren();
+            createGameModalTeamPicker.innerHTML = `<option disabled>Pick your team</option>`;
+          }
+
+          createGameElement.addEventListener("click", function () {
+            // create game modal show
+            console.log("create game modal");
+            createGameModal.style.display = "flex";
+          });
+
+          createGameModalCloseButton.addEventListener("click", function () {
+            createGameModal.style.display = "none";
+            resetCreateModal();
+          });
+
+          createGameModalTeamsCheckbox.addEventListener("change", () => {
+            createGameModalTeamNamesContainer.style.display =
+              createGameModalTeamsCheckbox.checked ? "block" : "none";
+            createGameModalTeamPickerContainer.style.display =
+              createGameModalTeamsCheckbox.checked ? "block" : "none";
+          });
+
+          createGameModalAddTeamButton.addEventListener("click", () => {
+            const newTeamInput = document.createElement("input");
+            newTeamInput.type = "text";
+            newTeamInput.name = "create-game-modal-team-name";
+            newTeamInput.placeholder = "Enter team name";
+            createGameModalTeamNamesDiv.appendChild(newTeamInput);
+          });
+
+          createGameModalTeamNamesDiv.addEventListener("change", () => {
+            createGameModalTeamPicker.innerHTML =
+              "<option disabled>Pick your team</option>";
+            Array.from(
+              document.querySelectorAll(
+                'input[name="create-game-modal-team-name"]'
+              )
+            )
+              .filter((input) => input.value !== "")
+              .forEach((input) => {
+                const option = document.createElement("option");
+                option.value = input.value;
+                option.innerText = input.value;
+
+                createGameModalTeamPicker.appendChild(option);
+              });
+          });
+
+          createGameModalSubmitButton.addEventListener("click", async () => {
+            const gameName = document.getElementById(
+              "create-game-modal-game-name"
+            ).value;
+            const isTeams = createGameModalTeamsCheckbox.checked;
+            const teamNames = Array.from(
+              document.querySelectorAll(
+                'input[name="create-game-modal-team-name"]'
+              )
+            )
+              .map((input) => input.value)
+              .filter((input) => input !== "");
+
+            const ownerTeam = document.getElementById(
+              "create-game-modal-pick-team"
+            ).value;
+
+            console.log("Game Name:", gameName);
+            console.log("Is Teams:", isTeams);
+            console.log("Team Names:", teamNames);
+            console.log("Owner Team:", ownerTeam);
+
+            if (gameName === "") {
+              throw new Error("Cannot submit with no game name");
+            }
+
+            const noTeams = teamNames.length === 0;
+            const noOwnerTeam = ownerTeam === "";
+            const ownerTeamInvalid = teamNames.every(
+              (team) => team != ownerTeam
+            );
+            if (isTeams && noTeams)
+              throw new Error("No teams specified for team game");
+            if (isTeams && noOwnerTeam)
+              throw new Error("Owner has not specified a team");
+            if (isTeams && ownerTeamInvalid)
+              throw new Error("Owner team not one of the specified teams");
+
+            const payload = {
+              game_name: gameName,
+              is_team_game: isTeams,
+              team_list: teamNames,
+              owner_team: ownerTeam,
+            };
+
+            // submit
+            const res = await fetch(
+              "https://run.sebgillman.top/tiles/create-game",
+              {
+                method: "POST",
+                body: JSON.stringify(payload),
+              }
+            );
+            if (!res.ok) throw new Error("Failed to create game");
+            res.json();
+
+            // Close modal after submitting
+            createGameModal.style.display = "none";
+
+            // reset modal
+            resetCreateModal();
+          });
+        });
+      </script>
+      <script id="join-game-script">
+        const joinGameElement = document.getElementById("join-game");
+
+        joinGameElement.addEventListener("click", function () {
+          // join game modal show
+          console.log("join game modal");
+        });
+      </script>
+      <script id="manage-game-script">
+        const manageGameElement = document.getElementById("manage-game");
+
+        manageGameElement.addEventListener("click", function () {
+          // manage game modal show
+          console.log("manage game modal");
+        });
+      </script>
+
       <ul
         id="games-list"
         style="
@@ -589,15 +847,30 @@
         document.addEventListener("DOMContentLoaded", async function () {
           const gamesList = document.getElementById("games-list");
 
-          const userGamesRes = await fetch(
-            "https://run.sebgillman.top/tiles/user-games"
-          );
-          if (!userGamesRes.ok) throw new Error("Get user games failed");
+          // const userGamesRes = await fetch(
+          //   "https://run.sebgillman.top/tiles/user-games"
+          // );
+          // if (!userGamesRes.ok) throw new Error("Get user games failed");
 
-          const userGames = await userGamesRes.json();
+          // const userGames = await userGamesRes.json();
+
+          const userGames = [
+            {
+              game_name: "Global",
+              team: null,
+              owner_id: "88192220",
+              game_id: "1",
+            },
+            {
+              game_name: "Test-Teams",
+              team: "B",
+              owner_id: "88192220",
+              game_id: "2",
+            },
+          ];
 
           window.game_id = 1;
-          window.game_name = "global";
+          window.game_name = "Global";
           window.team = null;
 
           for (let i = 0; i < userGames.length; i++) {
@@ -650,6 +923,61 @@
           }
         });
       </script>
+    </div>
+
+    <div id="create-game-modal" class="modal">
+      <div class="login modal-content">
+        <span id="create-game-modal-close" class="close">&times;</span>
+        <h2 style="font-family: Mondrake">Create a New Game</h2>
+
+        <!-- Game Name Input -->
+        <label for="create-game-modal-game-name">Game Name:</label>
+        <input
+          type="text"
+          id="create-game-modal-game-name"
+          name="create-game-modal-game-name"
+          placeholder="Enter game name"
+        />
+
+        <!-- Teams Checkbox -->
+        <div>
+          <label for="create-game-modal-teams-checkbox">Teams:</label>
+          <input
+            type="checkbox"
+            id="create-game-modal-teams-checkbox"
+            name="teams-checkbox"
+          />
+        </div>
+
+        <!-- Team Names Input (shown if teams checkbox is checked) -->
+        <div id="create-game-modal-team-names-container" style="display: none">
+          <label for="create-game-modal-team-names">Team Names:</label>
+          <div id="create-game-modal-team-names">
+            <input
+              type="text"
+              name="create-game-modal-team-name"
+              placeholder="Enter team name"
+            />
+          </div>
+          <button type="button" id="create-game-modal-add-team">
+            Add Team
+          </button>
+        </div>
+
+        <div id="create-game-modal-pick-team-container" style="display: none">
+          <label for="create-game-modal-pick-team">Pick Team:</label>
+          <select
+            id="create-game-modal-pick-team"
+            name="create-game-modal-pick-team"
+            placeholder="Enter game name"
+          >
+            <option disabled>Pick your team</option>
+          </select>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="button" id="create-game-modal-submit">Create</button>
+      </div>
     </div>
 
     <div
