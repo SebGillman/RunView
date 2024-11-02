@@ -5,10 +5,20 @@ import { getSessionFromCookie } from "../utils/auth_utils.ts";
 const app = new Hono();
 
 app.post("/create-game", getSessionFromCookie, async (c: Context) => {
-  const userId = c.get("userId");
+  const userId = Number(c.get("userId"));
   if (!userId) throw new Error("No userId found from cookie");
 
-  const { game_name, is_team_game, team_list, owner_team } = await c.req.json();
+  const {
+    game_name,
+    is_team_game,
+    team_list,
+    owner_team,
+  }: {
+    game_name: string;
+    is_team_game: boolean;
+    team_list: string[];
+    owner_team: string;
+  } = await c.req.json();
 
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 
