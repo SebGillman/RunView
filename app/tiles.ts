@@ -117,7 +117,7 @@ app.post("/update-game", getSessionFromCookie, async (c: Context) => {
   }
 
   // add teams to game
-  if (added_teams.length === 0) {
+  if (added_teams.length !== 0) {
     const addTeamsRes = await fetch(tileTrackerUrl + "/add-teams", {
       method: "POST",
       headers: new Headers({
@@ -140,8 +140,27 @@ app.post("/update-game", getSessionFromCookie, async (c: Context) => {
   return c.text("ok");
 });
 
+app.delete("/game", getSessionFromCookie, async (c: Context) => {
+  const userId = c.get("userId");
+  if (!userId) throw new Error("No userId found from cookie");
+
+  const { game_id } = c.req.query();
+
+  const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
+
+  const res = await fetch(
+    tileTrackerUrl + "?" + new URLSearchParams({ game_id, user_id: userId }),
+    { method: "DELETE" }
+  );
+
+  if (!res.ok) throw new Error("Failed to delete game");
+  await res.text();
+
+  return c.json({});
+});
 
 app.get("/user-games", getSessionFromCookie, async (c: Context) => {
+  // TODO: Games where user is owner return password
   const userId = c.get("userId");
   if (!userId) throw new Error("No userId found from cookie");
 
