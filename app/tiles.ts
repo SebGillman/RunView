@@ -4,8 +4,77 @@ import { getSessionFromCookie } from "../utils/auth_utils.ts";
 
 const app = new Hono();
 
+app.post("/create-game", getSessionFromCookie, async (c: Context) => {
+  const userId = c.get("userId");
+  if (!userId) throw new Error("No userId found from cookie");
+
+  const { game_name, is_team_game, team_list, owner_team } = await c.req.json();
+
+  const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
+
+  const createGameRes = await fetch(tileTrackerUrl + "/create-game", {
+    method: "POST",
+    headers: new Headers({
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify({
+      name: game_name,
+      teams: is_team_game,
+      owner_id: userId,
+    }),
+  });
+
+  if (!createGameRes.ok)
+    throw new Error("Create game did not finish successfully");
+
+  const { gameId } = await createGameRes.json();
+
+  // add teams to game
+  if (is_team_game) {
+    const addTeamsRes = await fetch(tileTrackerUrl + "/add-teams", {
+      method: "POST",
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      }),
+      body: JSON.stringify(
+        team_list.map((name: string) => ({
+          game_id: gameId,
+          name,
+        }))
+      ),
+    });
+
+    if (!addTeamsRes.ok)
+      throw new Error("Game created, but teams failed to be added");
+    await addTeamsRes.json();
+  }
+  // add owner to game
+
+  const addUserRes = await fetch(tileTrackerUrl + "/add-player", {
+    method: "POST",
+    headers: new Headers({
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify({
+      user_id: userId,
+      game_id: gameId,
+      team: is_team_game ? owner_team : null,
+    }),
+  });
+
+  if (!addUserRes.ok) throw new Error("Game created, but failed to add player");
+  await addUserRes.json();
+
+  return c.text("ok");
+});
+
 app.get("/user-games", getSessionFromCookie, async (c: Context) => {
   const userId = c.get("userId");
+  if (!userId) throw new Error("No userId found from cookie");
+
   const params = new URLSearchParams({ user_id: userId });
 
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
