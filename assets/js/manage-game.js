@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "manage-game-modal-delete"
   );
   const manageGameModalSaveButton = document.getElementById(
-    "manage-game-modal-delete"
+    "manage-game-modal-save"
   );
 
   function resetManageModal() {
@@ -102,7 +102,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const payload = {
       game_id: gameId,
-      game_name: gameName,
+      new_game_name: gameName,
+      old_game_name: window.game_name,
       added_teams: teamNames,
     };
 
@@ -132,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     );
     if (!res.ok) throw new Error("Failed to update game");
-    res.json();
+    res.text();
 
     // Close modal after submitting
     manageGameModal.style.display = "none";
