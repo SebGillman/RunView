@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "manage-game-modal-delete"
   );
   const manageGameModalSaveButton = document.getElementById(
-    "manage-game-modal-delete"
+    "manage-game-modal-save"
   );
 
   function resetManageModal() {
@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     );
     if (!res.ok) throw new Error("Failed to update game");
-    res.json();
+    res.text();
 
     // Close modal after submitting
     manageGameModal.style.display = "none";
