@@ -80,6 +80,66 @@ app.post("/create-game", getSessionFromCookie, async (c: Context) => {
 
   return c.text("ok");
 });
+app.post("/update-game", getSessionFromCookie, async (c: Context) => {
+  const userId = Number(c.get("userId"));
+  if (!userId) throw new Error("No userId found from cookie");
+
+  const {
+    game_id,
+    old_game_name,
+    new_game_name,
+    added_teams,
+  }: {
+    game_id: number;
+    old_game_name: string;
+    new_game_name: string;
+    added_teams: string[];
+  } = await c.req.json();
+
+  const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
+
+  if (new_game_name !== old_game_name) {
+    const renameGameRes = await fetch(tileTrackerUrl + "/rename-game", {
+      method: "POST",
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      }),
+      body: JSON.stringify({
+        game_id,
+        name: new_game_name,
+      }),
+    });
+
+    if (!renameGameRes.ok)
+      throw new Error("Create game did not finish successfully");
+    await renameGameRes.text();
+  }
+
+  // add teams to game
+  if (added_teams.length === 0) {
+    const addTeamsRes = await fetch(tileTrackerUrl + "/add-teams", {
+      method: "POST",
+      headers: new Headers({
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      }),
+      body: JSON.stringify(
+        added_teams.map((name: string) => ({
+          game_id,
+          team: name,
+        }))
+      ),
+    });
+
+    if (!addTeamsRes.ok)
+      throw new Error("Game created, but teams failed to be added");
+    await addTeamsRes.text();
+  }
+
+  return c.text("ok");
+});
+
 
 app.get("/user-games", getSessionFromCookie, async (c: Context) => {
   const userId = c.get("userId");

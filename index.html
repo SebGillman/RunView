@@ -147,6 +147,7 @@
         height: 66vh;
         text-align: center;
         position: relative;
+        scrollbar-width: none;
       }
 
       /* Close Button */
@@ -156,6 +157,13 @@
         right: 15px;
         font-size: 24px;
         cursor: pointer;
+      }
+      .text-field {
+        border-radius: 16px;
+        border-width: 3px;
+        border-color: antiquewhite;
+        padding: 2px;
+        margin: 3px;
       }
 
       @media (min-width: 640px) {
@@ -662,177 +670,9 @@
         </div>
       </div>
 
-      <script id="create-game-script">
-        document.addEventListener("DOMContentLoaded", function () {
-          const createGameElement = document.getElementById("create-game");
-          const createGameModal = document.getElementById("create-game-modal");
-          const createGameModalCloseButton = document.getElementById(
-            "create-game-modal-close"
-          );
-          const createGameModalSubmitButton = document.getElementById(
-            "create-game-modal-submit"
-          );
-          const createGameModalGameName = document.getElementById(
-            "create-game-modal-game-name"
-          );
-          const createGameModalTeamsCheckbox = document.getElementById(
-            "create-game-modal-teams-checkbox"
-          );
-          const createGameModalTeamNamesContainer = document.getElementById(
-            "create-game-modal-team-names-container"
-          );
-          const createGameModalTeamNamesDiv = document.getElementById(
-            "create-game-modal-team-names"
-          );
-          const createGameModalAddTeamButton = document.getElementById(
-            "create-game-modal-add-team"
-          );
-          const createGameModalTeamPickerContainer = document.getElementById(
-            "create-game-modal-pick-team-container"
-          );
-          const createGameModalTeamPicker = document.getElementById(
-            "create-game-modal-pick-team"
-          );
-
-          function resetCreateModal() {
-            createGameModalGameName.value = "";
-            createGameModalTeamsCheckbox.checked = false;
-
-            createGameModalTeamNamesDiv.replaceChildren();
-            createGameModalTeamNamesDiv.innerHTML = `
-                  <input
-                    type="text"
-                    name="create-game-modal-team-name"
-                    placeholder="Enter team name"
-                  />`;
-            createGameModalTeamPicker.replaceChildren();
-            createGameModalTeamPicker.innerHTML = `<option disabled>Pick your team</option>`;
-          }
-
-          createGameElement.addEventListener("click", function () {
-            // create game modal show
-            console.log("create game modal");
-            createGameModal.style.display = "flex";
-          });
-
-          createGameModalCloseButton.addEventListener("click", function () {
-            createGameModal.style.display = "none";
-            resetCreateModal();
-          });
-
-          createGameModalTeamsCheckbox.addEventListener("change", () => {
-            createGameModalTeamNamesContainer.style.display =
-              createGameModalTeamsCheckbox.checked ? "block" : "none";
-            createGameModalTeamPickerContainer.style.display =
-              createGameModalTeamsCheckbox.checked ? "block" : "none";
-          });
-
-          createGameModalAddTeamButton.addEventListener("click", () => {
-            const newTeamInput = document.createElement("input");
-            newTeamInput.type = "text";
-            newTeamInput.name = "create-game-modal-team-name";
-            newTeamInput.placeholder = "Enter team name";
-            createGameModalTeamNamesDiv.appendChild(newTeamInput);
-          });
-
-          createGameModalTeamNamesDiv.addEventListener("change", () => {
-            createGameModalTeamPicker.innerHTML =
-              "<option disabled>Pick your team</option>";
-            Array.from(
-              document.querySelectorAll(
-                'input[name="create-game-modal-team-name"]'
-              )
-            )
-              .filter((input) => input.value !== "")
-              .forEach((input) => {
-                const option = document.createElement("option");
-                option.value = input.value;
-                option.innerText = input.value;
-
-                createGameModalTeamPicker.appendChild(option);
-              });
-          });
-
-          createGameModalSubmitButton.addEventListener("click", async () => {
-            const gameName = document.getElementById(
-              "create-game-modal-game-name"
-            ).value;
-            const isTeams = createGameModalTeamsCheckbox.checked;
-            const teamNames = Array.from(
-              document.querySelectorAll(
-                'input[name="create-game-modal-team-name"]'
-              )
-            )
-              .map((input) => input.value)
-              .filter((input) => input !== "");
-
-            const ownerTeam = document.getElementById(
-              "create-game-modal-pick-team"
-            ).value;
-
-            console.log("Game Name:", gameName);
-            console.log("Is Teams:", isTeams);
-            console.log("Team Names:", teamNames);
-            console.log("Owner Team:", ownerTeam);
-
-            if (gameName === "") {
-              throw new Error("Cannot submit with no game name");
-            }
-
-            const noTeams = teamNames.length === 0;
-            const noOwnerTeam = ownerTeam === "";
-            const ownerTeamInvalid = teamNames.every(
-              (team) => team != ownerTeam
-            );
-            if (isTeams && noTeams)
-              throw new Error("No teams specified for team game");
-            if (isTeams && noOwnerTeam)
-              throw new Error("Owner has not specified a team");
-            if (isTeams && ownerTeamInvalid)
-              throw new Error("Owner team not one of the specified teams");
-
-            const payload = {
-              game_name: gameName,
-              is_team_game: isTeams,
-              team_list: teamNames,
-              owner_team: ownerTeam,
-            };
-
-            // submit
-            const res = await fetch(
-              "https://run.sebgillman.top/tiles/create-game",
-              {
-                method: "POST",
-                body: JSON.stringify(payload),
-              }
-            );
-            if (!res.ok) throw new Error("Failed to create game");
-            res.json();
-
-            // Close modal after submitting
-            createGameModal.style.display = "none";
-
-            // reset modal
-            resetCreateModal();
-          });
-        });
-      </script>
-      <script id="join-game-script">
-        const joinGameElement = document.getElementById("join-game");
-
-        joinGameElement.addEventListener("click", function () {
-          // join game modal show
-          console.log("join game modal");
-        });
-      </script>
-      <script id="manage-game-script">
-        const manageGameElement = document.getElementById("manage-game");
-
-        manageGameElement.addEventListener("click", function () {
-          // manage game modal show
-          console.log("manage game modal");
-        });
-      </script>
+      <script id="manage-game-script" src="assets/js/manage-game.js"></script>
+      <script id="create-game-script" src="assets/js/create-game.js"></script>
+      <script id="join-game-script" src="assets/js/join-game.js"></script>
 
       <ul
         id="games-list"
@@ -854,9 +694,11 @@
 
           const userGames = await userGamesRes.json();
 
+          // Initialize game variables to Global
           window.game_id = 1;
           window.game_name = "Global";
           window.team = null;
+          window.game_password = null;
 
           for (let i = 0; i < userGames.length; i++) {
             console.log(i);
@@ -962,6 +804,145 @@
 
         <!-- Submit Button -->
         <button type="button" id="create-game-modal-submit">Create</button>
+      </div>
+    </div>
+
+    <div id="manage-game-modal" class="modal">
+      <div
+        class="login modal-content"
+        style="
+          display: flex;
+          flex-direction: column;
+          justify-content: space-around;
+          align-items: start;
+          overflow-y: auto;
+        "
+      >
+        <span id="manage-game-modal-close" class="close">&times;</span>
+        <h2 style="font-family: Mondrake; font-size: larger">Manage Game</h2>
+
+        <!-- Game name Input -->
+        <div>
+          <label for="manage-game-modal-game-name">Game Name:</label>
+          <input
+            type="text"
+            class="text-field"
+            id="manage-game-modal-game-name"
+            name="manage-game-modal-game-name"
+            placeholder="Game name"
+          />
+        </div>
+
+        <!-- Add Team Names Input -->
+        <div
+          id="manage-game-modal-team-names-container"
+          style="
+            display: flex;
+            flex-direction: column;
+            justify-content: left;
+            align-items: start;
+          "
+        >
+          <label for="manage-game-modal-team-names" style="margin-bottom: 6px"
+            >Add Team Names:</label
+          >
+          <div id="manage-game-modal-team-names">
+            <input
+              type="text"
+              class="text-field"
+              name="manage-game-modal-team-name"
+              placeholder="Enter team name"
+            />
+          </div>
+
+          <button
+            type="button"
+            id="manage-game-modal-add-team"
+            style="
+              border-radius: 16px;
+              border-color: #57481f;
+              border-width: 4px;
+              background-color: #f6d989;
+              margin-top: 8px;
+              padding-left: 8px;
+              padding-right: 8px;
+            "
+          >
+            Add Team
+          </button>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: start">
+          <h2 style="margin-top: 10px; font-size: large">Add Players</h2>
+          <p style="margin-top: 4px; font-size: medium">
+            Provide these details to users to let them join game
+          </p>
+        </div>
+
+        <!-- Game id Input -->
+        <div>
+          <label for="manage-game-modal-game-id">Game ID:</label>
+          <input
+            type="text"
+            class="text-field"
+            id="manage-game-modal-game-id"
+            name="manage-game-modal-game-id"
+            placeholder="Game id"
+            disabled
+          />
+        </div>
+
+        <!-- Game id Input -->
+        <div>
+          <label for="manage-game-modal-game-password">Game Password:</label>
+          <input
+            type="text"
+            class="text-field"
+            id="manage-game-modal-game-password"
+            name="manage-game-modal-game-password"
+            placeholder="Game password"
+            disabled
+          />
+        </div>
+
+        <!-- Save + Delete Game Buttons -->
+        <div
+          style="display: flex; flex-direction: row; justify-content: center"
+        >
+          <button
+            type="button"
+            id="manage-game-modal-delete"
+            style="
+              background-color: #69d046;
+              color: #ffffff;
+              border-radius: 16px;
+              padding-left: 8px;
+              padding-right: 8px;
+              border-width: 4px;
+              border-color: #57481f;
+              margin-left: 8px;
+              margin-right: 8px;
+            "
+          >
+            Save</button
+          ><button
+            type="button"
+            id="manage-game-modal-delete"
+            style="
+              background-color: #d35e5e;
+              color: #ffffff;
+              border-radius: 16px;
+              padding-left: 8px;
+              padding-right: 8px;
+              border-width: 4px;
+              border-color: #57481f;
+              margin-left: 8px;
+              margin-right: 8px;
+            "
+          >
+            Delete Game
+          </button>
+        </div>
       </div>
     </div>
 
