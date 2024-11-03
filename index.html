@@ -391,6 +391,7 @@
           const colourJson = await colourRes.json();
           userColour = colourJson.tile_colour;
           userId = colourJson.id;
+          window.user_id = userId;
 
           // Check if it's in rgb() format, and convert to hex
           if (userColour.startsWith("rgb")) {
@@ -698,6 +699,7 @@
           window.game_id = 1;
           window.game_name = "Global";
           window.team = null;
+          window.game_owner = 88192220;
           window.game_password = null;
 
           for (let i = 0; i < userGames.length; i++) {
@@ -720,9 +722,11 @@
               window.game_id = ${game.game_id};
               window.game_name = "${game.game_name}";
               window.team = ${game.team == null ? null : "'" + game.team + "'"};
+              window.owner_id = ${game.owner_id};
               console.log("Game Id: ${game.game_id},
                           Game Name: ${game.game_name},
                           Team: ${game.team}");
+              document.getElementById("manage-game").style.visibility = (window.owner_id == userId) ? "visible" : "hidden";
 
               rerenderMap();
               rerenderLeaderboard();
