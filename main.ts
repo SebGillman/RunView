@@ -145,9 +145,13 @@ app.get(
 app.get("/", async (c: Context) => {
   const { logout } = c.req.query();
   if (logout) {
-    c.header(
+    c.res.headers.append(
       "Set-Cookie",
       `session_id=null; HttpOnly; Secure; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax;Path=/`
+    );
+    c.res.headers.append(
+      "Set-Cookie",
+      `access_token=null; HttpOnly; Secure; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax;Path=/`
     );
   }
   const doc = await getHTMLDoc("welcome.html");
