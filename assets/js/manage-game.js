@@ -48,6 +48,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.style.overflow = "hidden"; // Prevent body scrolling
     document.documentElement.style.overflow = "hidden"; // Prevent body scrolling
     manageGameModal.style.display = "flex";
+
+    manageGameModalTeamNamesContainer.style.display =
+      window.team === null || window.team === undefined ? "none" : "flex";
+
     resetManageModal();
   });
 
@@ -64,7 +68,6 @@ document.addEventListener("DOMContentLoaded", function () {
     newTeamInput.name = "manage-game-modal-team-name";
     newTeamInput.className = "text-field";
     newTeamInput.placeholder = "Enter team name";
-    console.log("AAAAAAA");
     manageGameModalTeamNamesDiv.appendChild(newTeamInput);
   });
 
