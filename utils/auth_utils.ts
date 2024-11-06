@@ -174,7 +174,15 @@ export const getSessionFromCookie = async (
       cookieHeader.split("; ").map((c) => c.split("="))
     );
     const sessionId = cookies["session_id"];
+    const accessTokenCookie = cookies["access_token"];
+
     c.set("userId", sessionId);
+    const env = c.get("env");
+    // verify access_token matches current auth_db access token
+    const accessToken = await getEnvVar(c, env, "ACCESS_TOKEN");
+    if (accessToken !== accessTokenCookie) {
+      c.set("userId", undefined);
+    }
   }
   return await next();
 };
@@ -186,10 +194,19 @@ export const setSessionCookie = async (
   console.log("setsession start");
   const sessionId = c.get("userId");
   if (!sessionId) return await next();
-  c.header(
+
+  const env = c.get("env");
+  const accessToken = await getEnvVar(c, env, "ACCESS_TOKEN");
+
+  c.res.headers.append(
     "Set-Cookie",
-    `session_id=${sessionId}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax;Path=/`
+    `session_id=${sessionId}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax; Path=/`
   );
+  c.res.headers.append(
+    "Set-Cookie",
+    `access_token=${accessToken}; HttpOnly; Secure; Max-Age=86400; SameSite=Lax; Path=/`
+  );
+
   return await next();
 };
 
