@@ -76,6 +76,20 @@ export async function getTokenExchange(
     const ACCESS_TOKEN = tokenData.access_token;
 
     const env: Client = c.get("env");
+
+    const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
+
+    // If new user (not in auth) add them to global tiles game
+    const res = await fetch(tileTrackerUrl + "/add-player", {
+      method: "POST",
+      headers: new Headers({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ user_id: Number(userId) }),
+    });
+
+    if (!res.ok) throw new Error("Failed to add user, Crashing out");
+    await res.body?.cancel();
+
+    // Put users auth credentials in the auth db
     await env.execute(`
             INSERT OR REPLACE INTO "users_strava_auth" (
               id,
