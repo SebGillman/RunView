@@ -4,6 +4,42 @@ import { getSessionFromCookie } from "../utils/auth_utils.ts";
 
 const app = new Hono();
 
+app.post("/add-player", getSessionFromCookie, async (c: Context) => {
+  const userId = Number(c.get("userId"));
+  if (!userId) throw new Error("No userId found from cookie");
+
+  const {
+    game_id,
+    team,
+  }: { game_id: number | undefined; team: string | undefined } =
+    await c.req.json();
+
+  const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
+
+  // create payload
+  const payload: { [key: string]: string | number } = {
+    user_id: userId,
+  };
+
+  // if game_id provided add to payload
+  if (game_id !== undefined) {
+    payload["game_id"] = game_id;
+  }
+  // if team provided add to payload
+  if (team !== undefined) {
+    payload["team"] = team;
+  }
+
+  const res = await fetch(tileTrackerUrl + "/add-user", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error("Failed to add user");
+
+  return c.json(await res.json());
+});
+
 app.post("/create-game", getSessionFromCookie, async (c: Context) => {
   const userId = Number(c.get("userId"));
   if (!userId) throw new Error("No userId found from cookie");
