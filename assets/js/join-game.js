@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const res = await fetch("https://run.sebgillman.top/tiles/add-player", {
       method: "POST",
+      headers: new Headers({ "Content-Type": "application/json" }),
       body: JSON.stringify(payload),
     });
 

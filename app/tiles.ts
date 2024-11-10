@@ -34,17 +34,25 @@ app.post("/add-player", getSessionFromCookie, async (c: Context) => {
     payload["team"] = team;
   }
   if (game_password !== undefined) {
-    payload["game_password"] = game_password;
+    payload["password"] = game_password;
   }
 
-  const res = await fetch(tileTrackerUrl + "/add-user", {
+  console.log(payload);
+
+  const res = await fetch(tileTrackerUrl + "/add-player", {
     method: "POST",
+    headers: new Headers({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) throw new Error("Failed to add user");
+  console.log(res);
 
-  return c.json(await res.json());
+  if (!res.ok) {
+    console.log(await res.text());
+    throw new Error("Failed to add user");
+  }
+
+  return c.json(await res.text());
 });
 
 app.post("/create-game", getSessionFromCookie, async (c: Context) => {
