@@ -36,18 +36,6 @@
       type="font/otf"
       crossorigin="anonymous"
     />
-    <script>
-      document.addEventListener("DOMContentLoaded", async () => {
-        const colourRes = await fetch("https://run.sebgillman.top/get-user");
-        if (!colourRes.ok) throw new Error("Colour failed to be retrieved");
-        const colourJson = await colourRes.json();
-        userColour = colourJson.tile_colour;
-        userId = colourJson.id;
-        window.user_id = userId;
-        window.user_colour = userColour;
-      });
-    </script>
-
     <style>
       .center {
         margin: auto auto;
@@ -235,6 +223,20 @@
       margin-right: auto;
     "
   >
+    <script id="get-user-script">
+      document.addEventListener("DOMContentLoaded", async () => {
+        const colourRes = await fetch("https://run.sebgillman.top/get-user");
+        if (!colourRes.ok) throw new Error("Colour failed to be retrieved");
+        const colourJson = await colourRes.json();
+        const userColour = colourJson.tile_colour;
+        const userId = colourJson.id;
+        window.user_id = userId;
+        window.user_colour = userColour;
+        console.log("SET", window.user_colour);
+
+        await setInitialUserColour();
+      });
+    </script>
     <nav class="nav fixed-navbar" style="font-family: Mondrake">
       <div
         style="
@@ -374,6 +376,7 @@
         let userColour;
         const colourDiv = document.getElementById("colour-target");
         const colourPicker = document.getElementById("colourPicker");
+
         colourDiv.addEventListener("click", function () {
           colourPicker.click();
         });
@@ -396,7 +399,7 @@
           return null;
         }
 
-        document.addEventListener("DOMContentLoaded", async function () {
+        async function setInitialUserColour() {
           userId = window.user_id;
           userColour = window.user_colour;
 
@@ -414,7 +417,7 @@
           } else {
             console.error("Invalid color format received from server");
           }
-        });
+        }
 
         colourPicker.addEventListener("input", function () {
           userColour = colourPicker.value;
