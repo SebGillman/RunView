@@ -414,14 +414,21 @@
           >Logout</a
         >
       </div>
-      <input type="color" id="colourPicker" name="colourPicker" value="" />
-      <!-- style="display: none" -->
+
+      <label id="colourPickerLabel" for="colourPicker"></label>
+      <input
+        type="color"
+        id="colourPicker"
+        name="colourPicker"
+        value=""
+        hidden
+      />
 
       <script>
         let userId;
         let userColour;
         const colourDiv = document.getElementById("colour-target");
-        const colourPicker = document.getElementById("colourPicker");
+        const colourPicker = document.getElementById("colourPickerLabel");
 
         colourDiv.addEventListener("click", function () {
           colourPicker.click();
