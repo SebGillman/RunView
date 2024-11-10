@@ -414,17 +414,25 @@
           >Logout</a
         >
       </div>
-      <input type="color" id="colourPicker" name="colourPicker" value="" />
-      <!-- style="display: none" -->
+
+      <label id="colourPickerLabel" for="colourPicker"></label>
+      <input
+        type="color"
+        id="colourPicker"
+        name="colourPicker"
+        value=""
+        style="width: 0px; height: 0px"
+      />
 
       <script>
         let userId;
         let userColour;
         const colourDiv = document.getElementById("colour-target");
         const colourPicker = document.getElementById("colourPicker");
+        const colourPickerLabel = document.getElementById("colourPickerLabel");
 
         colourDiv.addEventListener("click", function () {
-          colourPicker.click();
+          colourPickerLabel.click();
 
           // Add the 'wobble' class to trigger the animation
           colourDiv.classList.add("wobble");
@@ -464,7 +472,7 @@
           // Ensure the color is a valid hex code (e.g., #ff0000)
           if (/^#[0-9A-F]{6}$/i.test(userColour)) {
             // Set the color picker and div to the user's current color
-            colourPicker.value = userColour;
+            colourPickerLabel.value = userColour;
             colourDiv.style.backgroundColor = userColour;
             localStorage.setItem(userId + ":colour", userColour);
             updateTileColours(userId, userColour);
