@@ -1,5 +1,9 @@
 import { type Context, Hono } from "jsr:@hono/hono";
-import { getLeaderboard, getTilesWithinBounds } from "../utils/index.ts";
+import {
+  getFullNameById,
+  getLeaderboard,
+  getTilesWithinBounds,
+} from "../utils/index.ts";
 import { getSessionFromCookie } from "../utils/auth_utils.ts";
 
 const app = new Hono();
@@ -37,15 +41,11 @@ app.post("/add-player", getSessionFromCookie, async (c: Context) => {
     payload["password"] = game_password;
   }
 
-  console.log(payload);
-
   const res = await fetch(tileTrackerUrl + "/add-player", {
     method: "POST",
     headers: new Headers({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   });
-
-  console.log(res);
 
   if (!res.ok) {
     console.log(await res.text());
@@ -238,13 +238,34 @@ app.get("/game-teams", async (c: Context) => {
 
 app.get("/leaderboard", getSessionFromCookie, async (c: Context) => {
   const game_id = c.req.query("game_id") || "1";
+  const limit = c.req.query("limit") || "10";
+  const offset = c.req.query("offset") || "0";
   const userId = c.get("userId");
-  return c.json(
-    await getLeaderboard({
-      userId: parseInt(userId),
-      gameId: parseInt(game_id),
-    })
-  );
+  const resJson = await getLeaderboard({
+    userId: parseInt(userId),
+    gameId: parseInt(game_id),
+    limit: parseInt(limit),
+    offset: parseInt(offset),
+  });
+
+  for (let i = 0; i < resJson.leaderboard.length; i++) {
+    const entry: {
+      rank: number;
+      score: number;
+      user_id: string;
+      full_name?: string;
+    } = resJson.leaderboard[i];
+
+    resJson.leaderboard[i]["full_name"] = await getFullNameById(
+      c,
+      entry.user_id
+    );
+  }
+
+  if (resJson.user) {
+    resJson.user["full_name"] = await getFullNameById(c, resJson.user.user_id);
+  }
+  return c.json(resJson);
 });
 
 app.get("/in-range", async (c: Context) => {
