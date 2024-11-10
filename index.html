@@ -634,6 +634,7 @@
             id="manage-game"
             class="login"
             style="
+              visibility: hidden;
               font-family: Mondrake;
               cursor: pointer;
               margin-right: 16px;
@@ -706,12 +707,13 @@
           window.game_id = 1;
           window.game_name = "Global";
           window.team = null;
-          window.game_owner = 88192220;
+          window.owner_id = 88192220;
           window.game_password = "";
 
-          for (let i = 0; i < userGames.length; i++) {
-            console.log(i);
+          document.getElementById("manage-game").style.visibility =
+            window.owner_id == window.user_id ? "visible" : "hidden";
 
+          for (let i = 0; i < userGames.length; i++) {
             const game = userGames[i];
 
             const gameLinkScript = document.createElement("script");
