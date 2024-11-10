@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
     createGameModalTeamNamesDiv.innerHTML = `
                   <input
                     type="text"
+                    class = "text-field"
                     name="create-game-modal-team-name"
                     placeholder="Enter team name"
                   />`;
@@ -68,6 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
   createGameModalAddTeamButton.addEventListener("click", () => {
     const newTeamInput = document.createElement("input");
     newTeamInput.type = "text";
+    newTeamInput.className = "text-field";
     newTeamInput.name = "create-game-modal-team-name";
     newTeamInput.placeholder = "Enter team name";
     createGameModalTeamNamesDiv.appendChild(newTeamInput);

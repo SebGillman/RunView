@@ -707,7 +707,7 @@
           window.game_name = "Global";
           window.team = null;
           window.game_owner = 88192220;
-          window.game_password = undefined;
+          window.game_password = "";
 
           for (let i = 0; i < userGames.length; i++) {
             console.log(i);
@@ -730,7 +730,7 @@
               window.game_name = "${game.game_name}";
               window.team = ${game.team == null ? null : "'" + game.team + "'"};
               window.owner_id = ${game.owner_id};
-              window.game_password = ${game.password};
+              window.game_password = "${game.password}";
               console.log("Game Id: ${game.game_id},
                           Game Name: ${game.game_name},
                           Team: ${game.team}");
@@ -773,6 +773,7 @@
         <label for="create-game-modal-game-name">Game Name:</label>
         <input
           type="text"
+          class="text-field"
           id="create-game-modal-game-name"
           name="create-game-modal-game-name"
           placeholder="Enter game name"
@@ -794,6 +795,7 @@
           <div id="create-game-modal-team-names">
             <input
               type="text"
+              class="text-field"
               name="create-game-modal-team-name"
               placeholder="Enter team name"
             />
@@ -839,6 +841,7 @@
           <input
             type="text"
             class="text-field"
+            class="text-field"
             id="manage-game-modal-game-name"
             name="manage-game-modal-game-name"
             placeholder="Game name"
@@ -861,6 +864,7 @@
           <div id="manage-game-modal-team-names">
             <input
               type="text"
+              class="text-field"
               class="text-field"
               name="manage-game-modal-team-name"
               placeholder="Enter team name"
@@ -955,6 +959,62 @@
             Delete Game
           </button>
         </div>
+      </div>
+    </div>
+
+    <div id="join-game-modal" class="modal">
+      <div
+        class="login modal-content"
+        style="
+          display: flex;
+          flex-direction: column;
+          justify-content: space-around;
+          align-items: start;
+          overflow-y: auto;
+        "
+      >
+        <span id="join-game-modal-close" class="close">&times;</span>
+        <h2 style="font-family: Mondrake">Join Game</h2>
+        <p>Request the Game ID and Password from the game creator</p>
+
+        <!-- Game Name Input -->
+        <label for="join-game-modal-game-id">Game ID:</label>
+        <input
+          type="text"
+          class="text-field"
+          id="join-game-modal-game-id"
+          name="join-game-modal-game-id"
+          placeholder="Enter game id"
+        />
+
+        <!-- Game Name Password -->
+        <label for="join-game-modal-game-password">Game Password:</label>
+        <input
+          type="text"
+          class="text-field"
+          id="join-game-modal-game-password"
+          name="join-game-modal-game-password"
+          placeholder="Enter game password"
+        />
+
+        <!-- Join Button -->
+        <button
+          type="button"
+          id="join-game-modal-submit"
+          style="
+            background-color: #6dd35e;
+            color: #ffffff;
+            border-radius: 16px;
+            padding-left: 8px;
+            padding-right: 8px;
+            border-width: 4px;
+            border-color: #57481f;
+            margin-left: 8px;
+            margin-right: 8px;
+          "
+        >
+          Join
+        </button>
       </div>
     </div>
 
