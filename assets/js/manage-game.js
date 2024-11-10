@@ -56,8 +56,8 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   manageGameModalCloseButton.addEventListener("click", function () {
-    document.body.style.overflow = "auto"; // Prevent body scrolling
-    document.documentElement.style.overflow = "auto"; // Prevent body scrolling
+    document.body.style.overflow = "auto"; // Allow body scrolling
+    document.documentElement.style.overflow = "auto"; // Allow body scrolling
     manageGameModal.style.display = "none";
     resetManageModal();
   });
