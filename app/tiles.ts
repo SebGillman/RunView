@@ -11,8 +11,12 @@ app.post("/add-player", getSessionFromCookie, async (c: Context) => {
   const {
     game_id,
     team,
-  }: { game_id: number | undefined; team: string | undefined } =
-    await c.req.json();
+    game_password,
+  }: {
+    game_id: number | undefined;
+    team: string | undefined;
+    game_password: string | undefined;
+  } = await c.req.json();
 
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 
@@ -28,6 +32,9 @@ app.post("/add-player", getSessionFromCookie, async (c: Context) => {
   // if team provided add to payload
   if (team !== undefined) {
     payload["team"] = team;
+  }
+  if (game_password !== undefined) {
+    payload["game_password"] = game_password;
   }
 
   const res = await fetch(tileTrackerUrl + "/add-user", {
