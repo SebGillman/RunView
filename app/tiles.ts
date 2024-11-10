@@ -198,7 +198,6 @@ app.delete("/game", getSessionFromCookie, async (c: Context) => {
 });
 
 app.get("/user-games", getSessionFromCookie, async (c: Context) => {
-  // TODO: Games where user is owner return password
   const userId = c.get("userId");
   if (!userId) throw new Error("No userId found from cookie");
 
