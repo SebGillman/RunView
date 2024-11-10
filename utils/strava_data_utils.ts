@@ -80,7 +80,11 @@ export async function getActivityStream(
   c: Context,
   env: Client,
   activityId: number
-): Promise<{ latlng: { data: Array<[number, number]> } }> {
+): Promise<{
+  latlng?: { data: Array<[number, number]> };
+  status?: number;
+  error?: string;
+}> {
   const ACCESS_TOKEN = await getEnvVar(c, env, "ACCESS_TOKEN");
 
   const res = await fetch(
@@ -95,7 +99,7 @@ export async function getActivityStream(
   );
 
   if (!res.ok) {
-    throw new Error("ERROR: Failed to get activity stream!");
+    return { status: res.status, error: res.statusText };
   }
   return await res.json();
 }

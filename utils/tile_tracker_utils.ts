@@ -22,6 +22,14 @@ export async function passActivityToTileTracker(
   }
 
   const activityStream = await getActivityStream(c, env, activityId);
+  if (activityStream.error || activityStream.latlng === undefined) {
+    console.error(
+      activityStream.status,
+      "Failed to get activity coordinates:",
+      activityStream.error
+    );
+    return;
+  }
 
   const payload: TileTrackerCoordPayload = {
     userId,

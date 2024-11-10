@@ -37,12 +37,12 @@ app.get(
           Authorization: `Bearer ${ACCESS_TOKEN}`,
           Accept: "application/json",
         }),
-      },
+      }
     );
     if (!res.ok) throw new Error("Bad response");
     const resJson = await res.json();
     return c.json(resJson);
-  },
+  }
 );
 
 // sessionFromHeader for testing (postman)
@@ -76,11 +76,11 @@ app.post(
       {
         method: "POST",
         body: urlEncodedData,
-      },
+      }
     );
     if (!response.ok) return c.text("Subscription Failed!");
     return c.text("Subscription made, get incoming to /subscription/listen");
-  },
+  }
 );
 
 app.get("/listen", (c: Context) => {
