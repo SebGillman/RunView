@@ -30,13 +30,13 @@ document.addEventListener("DOMContentLoaded", () => {
   joinGameModalClose.addEventListener("click", resetJoinModal);
 
   joinGameModalSubmit.addEventListener("click", async () => {
-    if (!joinGameModalGameId.value) {
-      console.error("No game id provided");
+    if (!Number(joinGameModalGameId.value)) {
+      console.error("Game id missing or incorrect");
       return;
     }
 
     const payload = {
-      game_id: joinGameModalGameId.value,
+      game_id: Number(joinGameModalGameId.value),
       game_password: joinGameModalGamePassword.value,
     };
 
