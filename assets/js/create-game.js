@@ -49,6 +49,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   createGameElement.addEventListener("click", function () {
+    document.body.style.overflow = "hidden"; // Prevent body scrolling
+    document.documentElement.style.overflow = "hidden"; // Prevent body scrolling
     // create game modal show
     console.log("create game modal");
     createGameModal.style.display = "flex";
@@ -56,6 +58,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   createGameModalCloseButton.addEventListener("click", function () {
     createGameModal.style.display = "none";
+    document.body.style.overflow = "auto"; // Prevent body scrolling
+    document.documentElement.style.overflow = "auto"; // Prevent body scrolling
     resetCreateModal();
   });
 
@@ -140,6 +144,9 @@ document.addEventListener("DOMContentLoaded", function () {
     res.json();
 
     // Close modal after submitting
+    document.body.style.overflow = "auto"; // Prevent body scrolling
+    document.documentElement.style.overflow = "auto"; // Prevent body scrolling
+
     createGameModal.style.display = "none";
 
     // reset modal
