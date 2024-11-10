@@ -36,6 +36,15 @@
       type="font/otf"
       crossorigin="anonymous"
     />
+    <script>
+      const colourRes = await fetch("https://run.sebgillman.top/get-user");
+      if (!colourRes.ok) throw new Error("Colour failed to be retrieved");
+      const colourJson = await colourRes.json();
+      userColour = colourJson.tile_colour;
+      userId = colourJson.id;
+      window.user_id = userId;
+      window.user_colour = userColour;
+    </script>
 
     <style>
       .center {
@@ -386,12 +395,8 @@
         }
 
         document.addEventListener("DOMContentLoaded", async function () {
-          const colourRes = await fetch("https://run.sebgillman.top/get-user");
-          if (!colourRes.ok) throw new Error("Colour failed to be retrieved");
-          const colourJson = await colourRes.json();
-          userColour = colourJson.tile_colour;
-          userId = colourJson.id;
-          window.user_id = userId;
+          userId = window.user_id;
+          userColour = window.user_colour;
 
           // Check if it's in rgb() format, and convert to hex
           if (userColour.startsWith("rgb")) {
@@ -700,7 +705,7 @@
           window.game_name = "Global";
           window.team = null;
           window.game_owner = 88192220;
-          window.game_password = null;
+          window.game_password = undefined;
 
           for (let i = 0; i < userGames.length; i++) {
             console.log(i);
@@ -723,10 +728,11 @@
               window.game_name = "${game.game_name}";
               window.team = ${game.team == null ? null : "'" + game.team + "'"};
               window.owner_id = ${game.owner_id};
+              window.game_password = ${game.password};
               console.log("Game Id: ${game.game_id},
                           Game Name: ${game.game_name},
                           Team: ${game.team}");
-              document.getElementById("manage-game").style.visibility = (window.owner_id == userId) ? "visible" : "hidden";
+              document.getElementById("manage-game").style.visibility = (window.owner_id == window.user_id) ? "visible" : "hidden";
 
               rerenderMap();
               rerenderLeaderboard();
