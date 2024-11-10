@@ -59,6 +59,21 @@ export async function passActivityToTileTracker(
   console.log("Activity route posted to TileTracker.");
 }
 
+export async function getFullNameById(c: Context, user_id: string) {
+  const db: Client = c.get("db");
+  if (!db) throw new Error("Failed to get db");
+
+  const res = await db.execute(
+    `SELECT firstname, lastname FROM users WHERE id = "${user_id}";`
+  );
+
+  const row = res.rows[0];
+
+  console.log(`${row.firstname} ${row.lastname}`);
+
+  return `${row.firstname} ${row.lastname}`;
+}
+
 export async function getLeaderboard(options: {
   userId?: number;
   limit?: number;
