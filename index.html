@@ -221,6 +221,44 @@
         font-weight: normal;
         font-style: normal;
       }
+
+      /* Define the wobble animation */
+      @keyframes wobble {
+        0% {
+          transform: rotate(0deg);
+        }
+        15% {
+          transform: rotate(15deg);
+        }
+        30% {
+          transform: rotate(-10deg);
+        }
+        45% {
+          transform: rotate(5deg);
+        }
+        60% {
+          transform: rotate(-5deg);
+        }
+        75% {
+          transform: rotate(2deg);
+        }
+        100% {
+          transform: rotate(0deg);
+        }
+      }
+
+      /* Add default button styling */
+      .button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+
+      /* Initially no wobble animation */
+      .button.wobble {
+        animation: wobble 0.5s ease;
+      }
     </style>
   </head>
   <body
@@ -346,7 +384,7 @@
       <div style="display: flex; justify-content: left; padding-left: 16px">
         <div
           id="colour-target"
-          class="login"
+          class="login button"
           style="
             font-family: Mondrake;
             cursor: pointer;
@@ -391,6 +429,14 @@
 
         colourDiv.addEventListener("click", function () {
           colourPicker.click();
+
+          // Add the 'wobble' class to trigger the animation
+          colourDiv.classList.add("wobble");
+
+          // Remove the 'wobble' class after the animation ends to reset it
+          setTimeout(() => {
+            colourDiv.classList.remove("wobble");
+          }, 500); // 500ms matches the animation duration
         });
 
         function rgbToHex(rgb) {
