@@ -89,7 +89,8 @@ app.post("/create-game", getSessionFromCookie, async (c: Context) => {
   if (!createGameRes.ok)
     throw new Error("Create game did not finish successfully");
 
-  const { game_id }: { game_id: number } = await createGameRes.json();
+  const { game_id, password }: { game_id: number; password: string } =
+    await createGameRes.json();
 
   // add teams to game
   if (is_team_game) {
@@ -123,6 +124,7 @@ app.post("/create-game", getSessionFromCookie, async (c: Context) => {
       user_id: userId,
       game_id,
       team: is_team_game ? owner_team : null,
+      password,
     }),
   });
 
