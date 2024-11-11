@@ -765,6 +765,13 @@
       ></ul>
       <script>
         document.addEventListener("DOMContentLoaded", async function () {
+          // Initialize game variables to Global
+          window.game_id = 1;
+          window.game_name = "Global";
+          window.team = null;
+          window.owner_id = 88192220;
+          window.game_password = "";
+
           const gamesList = document.getElementById("games-list");
 
           const userGamesRes = await fetch(
@@ -773,13 +780,6 @@
           if (!userGamesRes.ok) throw new Error("Get user games failed");
 
           const userGames = await userGamesRes.json();
-
-          // Initialize game variables to Global
-          window.game_id = 1;
-          window.game_name = "Global";
-          window.team = null;
-          window.owner_id = 88192220;
-          window.game_password = "";
 
           document.getElementById("manage-game").style.visibility =
             window.owner_id == window.user_id ? "visible" : "hidden";

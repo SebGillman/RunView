@@ -113,9 +113,12 @@ export async function refreshTokensIfExpired(
   c: Context,
   next: () => Promise<void>
 ): Promise<void> {
+  console.log("refreshTokensIfExpired start");
   const env: Client = c.get("env");
 
   const userId = c.get("userId");
+  console.log("userId", userId);
+
   if (!userId) return next();
   const expiryTime = Number(await getEnvVar(c, env, "ACCESS_TOKEN_EXPIRES_AT"));
   const currentTime = new Date().getTime() / 1000;
@@ -161,6 +164,7 @@ export async function refreshTokensIfExpired(
         WHERE id = '${userId}';
         `);
 
+  console.log("refreshTokensIfExpired end");
   return next();
 }
 
@@ -182,8 +186,12 @@ export const getSessionFromCookie = async (
   c: Context,
   next: () => Promise<void>
 ) => {
+  console.log("getSessionFromCookie Start");
+
   const cookieHeader = c.req.header("Cookie");
   if (cookieHeader) {
+    console.log("getSessionFromCookie Cookie found");
+
     const cookies = Object.fromEntries(
       cookieHeader.split("; ").map((c) => c.split("="))
     );
@@ -195,9 +203,12 @@ export const getSessionFromCookie = async (
     // verify access_token matches current auth_db access token
     const accessToken = await getEnvVar(c, env, "ACCESS_TOKEN");
     if (accessToken !== accessTokenCookie) {
+      console.log("getSessionFromCookie invalid accessToken");
+
       c.set("userId", undefined);
     }
   }
+  console.log("getSessionFromCookie End");
   return await next();
 };
 
