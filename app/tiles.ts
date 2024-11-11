@@ -197,14 +197,18 @@ app.delete("/game", getSessionFromCookie, async (c: Context) => {
   const userId = c.get("userId");
   if (!userId) throw new Error("No userId found from cookie");
 
-  const { game_id } = c.req.query();
+  const { game_id, password } = c.req.query();
+
+  if (!game_id) throw new Error("DELETE /game : no game_id provided in params");
+  if (!password)
+    throw new Error("DELETE /game : no password provided in params");
 
   const tileTrackerUrl = Deno.env.get("TILE_TRACKER_URL");
 
   const res = await fetch(
     tileTrackerUrl +
       "/game?" +
-      new URLSearchParams({ game_id, user_id: userId }),
+      new URLSearchParams({ game_id, user_id: userId, password }),
     { method: "DELETE" }
   );
 

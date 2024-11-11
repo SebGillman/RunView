@@ -129,10 +129,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   manageGameModalDeleteButton.addEventListener("click", async () => {
     const gameId = window.game_id;
+    const password = window.game_password;
 
     // submit
     const res = await fetch(
-      `https://run.sebgillman.top/tiles/game?game_id=${gameId}`,
+      `https://run.sebgillman.top/tiles/game?game_id=${gameId}&password=${password}`,
       {
         method: "DELETE",
       }
