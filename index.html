@@ -436,7 +436,7 @@
         type="color"
         id="colourPicker"
         name="colourPicker"
-        value=""
+        value="#ffffff"
         style="width: 0px; height: 0px"
       />
 
@@ -1306,9 +1306,9 @@
                     // Get users tile colour
                     const tileColourRes = await fetch(`https://run.sebgillman.top/user/${user_id}/colour`)
                     if(tileColourRes.ok){
-                      tileColour = await tileColourRes.text()
+                      tileColour = await tileColourRes.text() || "#ffffff"
                     } else{
-                      tileColour = "rgb(100,100,100,0.5)"
+                      tileColour = "#ffffff"
                     }
                     sessionStorage.setItem(user_id+":colour",tileColour)
                   }
