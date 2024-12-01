@@ -490,7 +490,7 @@
             // Set the color picker and div to the user's current color
             colourPickerLabel.value = userColour;
             colourDiv.style.backgroundColor = userColour;
-            localStorage.setItem(userId + ":colour", userColour);
+            sessionStorage.setItem(userId + ":colour", userColour);
             updateTileColours(userId, userColour);
           } else {
             console.error("Invalid color format received from server");
@@ -518,7 +518,7 @@
           const selectedColour = colourPicker.value; // Get the selected color (hex)
 
           try {
-            localStorage.setItem(userId + ":colour", selectedColour);
+            sessionStorage.setItem(userId + ":colour", selectedColour);
 
             fetch("https://run.sebgillman.top/set-user-colour", {
               method: "PATCH",
@@ -1299,8 +1299,8 @@
                     userId = resJson.id
                   }
 
-                  // Check if user_id in localStorage
-                  let tileColour = localStorage.getItem(user_id+":colour")
+                  // Check if user_id in sessionStorage
+                  let tileColour = sessionStorage.getItem(user_id+":colour")
 
                   if (tileColour===null){
                     // Get users tile colour
@@ -1310,7 +1310,7 @@
                     } else{
                       tileColour = "rgb(100,100,100,0.5)"
                     }
-                    localStorage.setItem(user_id+":colour",tileColour)
+                    sessionStorage.setItem(user_id+":colour",tileColour)
                   }
 
                   // Convert both points to pixel coordinates using Leaflets latLngToLayerPoint
