@@ -45,8 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
   manageGameElement.addEventListener("click", function () {
     // manage game modal show
     console.log("manage game modal");
-    document.body.style.overflow = "hidden"; // Prevent body scrolling
-    document.documentElement.style.overflow = "hidden"; // Prevent body scrolling
+    document.documentElement.style.overflowY = "hidden"; // Prevent body scrolling
     manageGameModal.style.display = "flex";
 
     manageGameModalTeamNamesContainer.style.display =
@@ -56,8 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   manageGameModalCloseButton.addEventListener("click", function () {
-    document.body.style.overflow = "auto"; // Allow body scrolling
-    document.documentElement.style.overflow = "auto"; // Allow body scrolling
+    document.documentElement.style.overflowY = "auto"; // Allow body scrolling
     manageGameModal.style.display = "none";
     resetManageModal();
   });
@@ -120,8 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Close modal after submitting
     manageGameModal.style.display = "none";
-    document.body.style.overflow = "auto"; // Prevent body scrolling
-    document.documentElement.style.overflow = "auto"; // Prevent body scrolling
+    document.documentElement.style.overflowY = "auto"; // Prevent body scrolling
 
     // reset modal
     resetManageModal();
@@ -143,8 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Close modal after submitting
     manageGameModal.style.display = "none";
-    document.body.style.overflow = "auto"; // Prevent body scrolling
-    document.documentElement.style.overflow = "auto"; // Prevent body scrolling
+    document.documentElement.style.overflowY = "auto"; // Prevent body scrolling
 
     // reset modal
     resetManageModal();

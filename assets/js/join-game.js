@@ -12,8 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const joinGameModalSubmit = document.getElementById("join-game-modal-submit");
 
   function resetJoinModal() {
-    document.body.style.overflow = "auto"; // Allow body scrolling
-    document.documentElement.style.overflow = "auto"; // Allow body scrolling
+    document.documentElement.style.overflowY = "auto"; // Allow body scrolling
 
     joinGameModal.style.display = "none";
 
@@ -22,8 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   joinGameElement.addEventListener("click", () => {
-    document.body.style.overflow = "hidden"; // Prevent body scrolling
-    document.documentElement.style.overflow = "hidden"; // Prevent body scrolling
+    document.documentElement.style.overflowY = "hidden"; // Prevent body scrolling
     joinGameModal.style.display = "flex";
   });
 
