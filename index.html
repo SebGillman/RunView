@@ -1390,12 +1390,32 @@
               var tile_layer_41d87743000f11b95160e9201fef61b1 = L.tileLayer(
                   "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
                   {"attribution": "CartoDB Positron", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
-              ).addTo(map_25280c96c723246c35b2918a2b89ddb3);          
-      
-              map_25280c96c723246c35b2918a2b89ddb3.fitBounds(
-                  [[50.72164, -1.91071], [50.73895, -1.87757]],
-                  {}
-              );
+              ).addTo(map_25280c96c723246c35b2918a2b89ddb3);
+              
+              async function getCurrentCoords(){
+                const geo = window.parent.navigator.geolocation
+                await geo.getCurrentPosition(
+                  (pos)=>{
+                    const coords = pos.coords
+                    const lat = coords.latitude
+                    const long = coords.longitude
+
+                    map_25280c96c723246c35b2918a2b89ddb3.fitBounds(
+                      [[lat-0.005,long-0.004],[lat+0.005,long+0.004]],
+                      {}
+                    );
+
+                  },
+                  (posError)=>{
+                    map_25280c96c723246c35b2918a2b89ddb3.fitBounds(
+                      [[50.72164, -1.91071], [50.73895, -1.87757]],
+                      {}
+                    );
+                  })
+              }
+
+              document.addEventListener("DOMContentLoaded",getCurrentCoords);
+              
         
           </script>
           </html>'
