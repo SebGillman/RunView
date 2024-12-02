@@ -254,22 +254,29 @@ app.get("/leaderboard", getSessionFromCookie, async (c: Context) => {
     offset: parseInt(offset),
   });
 
-  for (let i = 0; i < resJson.leaderboard.length; i++) {
-    const entry: {
-      rank: number;
-      score: number;
-      user_id: string;
-      full_name?: string;
-    } = resJson.leaderboard[i];
+  console.log(resJson);
 
-    resJson.leaderboard[i]["full_name"] = await getFullNameById(
-      c,
-      entry.user_id
-    );
-  }
+  if (!resJson.teams) {
+    for (let i = 0; i < resJson.leaderboard.length; i++) {
+      const entry: {
+        rank: number;
+        score: number;
+        user_id: string;
+        full_name?: string;
+      } = resJson.leaderboard[i];
 
-  if (resJson.user) {
-    resJson.user["full_name"] = await getFullNameById(c, resJson.user.user_id);
+      resJson.leaderboard[i]["full_name"] = await getFullNameById(
+        c,
+        entry.user_id
+      );
+    }
+
+    if (resJson.user) {
+      resJson.user["full_name"] = await getFullNameById(
+        c,
+        resJson.user.user_id
+      );
+    }
   }
   return c.json(resJson);
 });
